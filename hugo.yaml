@@ -1,4 +1,96 @@
-baseURL: https://example.org/
-languageCode: zh
+baseURL: https://heruos.org/
+languageCode: "zh"
+DefaultContentLanguage: "zh"
 title: Heruos
 theme: ["PaperMod"]
+
+enableInlineShortcodes: true
+enableRobotsTXT: true
+buildDrafts: false
+buildFuture: false
+buildExpired: false
+enableEmoji: true
+pygmentsUseClasses: true
+mainsections: ["post", "papermod"]
+
+minify:
+  disableXML: true
+  # minifyOutput: true
+
+pagination:
+  disableAliases: false
+  pagerSize: 7
+
+languages:
+  zh:
+    languageName: "中文"
+    weight: 10
+    taxonomies:
+      category: categories
+      tag: tags
+      series: series
+    menu:
+      main:
+        - name: 归档
+          url: archives
+          weight: 5
+        - name: 分类
+          url: categories/
+          weight: 7
+    #     - name: 搜索
+    #       url: search/
+    #       weight: 10
+        - name: 标签
+          url: tags/
+          weight: 10
+        - name: 关于
+          url: about
+          weight: 15
+  en:
+    languageName: "English"
+    weight: 1
+    taxonomies:
+      category: categories
+      tag: tags
+      series: series
+    menu:
+      main:
+        - name: Archive
+          url: archives
+          weight: 5
+        - name: Categories
+          url: categories/
+          weight: 7
+    #     - name: Search
+    #       url: search/
+    #       weight: 10
+        - name: Tags
+          url: tags/
+          weight: 10
+        - name: About
+          url: about
+          weight: 15
+
+params:
+  env: production # to enable google analytics, opengraph, twitter-cards and schema.
+  description: "Make your lives extraordinary."
+  author: Rainux He
+
+  defaultTheme: auto
+  # disableThemeToggle: true
+  ShowShareButtons: true
+  ShowReadingTime: true
+  # disableSpecial1stPost: true
+  displayFullLangName: true
+  ShowPostNavLinks: true
+  ShowBreadCrumbs: true
+  ShowCodeCopyButtons: true
+  ShowRssButtonInSectionTermList: true
+  ShowAllPagesInArchive: true
+  ShowPageNums: true
+  ShowToc: true
+
+  homeInfoParams:
+    Title: "Heruos || Rainux || 花酒锄作田"
+    Content: >
+      Hello World!
