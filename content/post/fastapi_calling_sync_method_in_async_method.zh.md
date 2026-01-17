@@ -1,7 +1,7 @@
 +++
 date = '2026-01-06T16:19:44+08:00'
 draft = false
-title = 'FastAPI - Calling Synchronous Methods in FastAPI Asynchronous Methods'
+title = 'FastAPI - 在异步方法中调用同步方法'
 categories = ["program"]
 tags = ["fastapi", "python"]
 +++

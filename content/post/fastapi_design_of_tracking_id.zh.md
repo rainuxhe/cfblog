@@ -1,7 +1,7 @@
 +++
 date = '2025-12-11T00:40:44+08:00'
 draft = false
-title = 'FastAPI - Design of tracking_id'
+title = 'FastAPI - Tracking ID的设计'
 categories = ["program"]
 tags = ["fastapi", "python"]
 +++
