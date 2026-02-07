@@ -2,8 +2,9 @@
 date = '2025-12-25T00:14:28+08:00'
 draft = false
 title = "Mcp-01: 简介与概念"
-categories = ["program"]
-tags = ["mcp", "python"]
+description = "简单介绍MCP的一些基本概念"
+categories = ["program", "ai"]
+tags = ["mcp", "python", "ai"]
 +++
 
 ## 前言
