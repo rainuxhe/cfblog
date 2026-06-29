@@ -1,38 +1,39 @@
 +++
 date = '2026-05-31T00:08:19+08:00'
 draft = false
-title = 'Argparse在聊天机器人中的应用'
+title = 'Using Argparse in a Chatbot'
 description = 'Argparse in Chatbot'
-summary = '将argparse用于聊天机器人命令解析'
+summary = 'Using argparse for chat command parsing'
+isCJKLanguage = false
 categories = ["program"]
-tags = ["python"]
+tags = ["python", "AI-Translated"]
 keywords = ["python", "argparse", "chatbot"]
 slug = 'argparse-in-chatbot'
 +++
 
-## 前言
+## Introduction
 
-在开发一个 AI 驱动的 IM 应用 Bot 时，某些场景用命令会更快更准确。我的设想是先按空格分割用户输入的文本，拿到第一段去匹配命令字典，如果匹配上了，说明用户想要执行命令，接着交给命令类处理即可；如果未匹配到，说明用户发的只是自然语言，那就需要交给 AI 相关的模块来处理。
+When developing an AI-driven IM bot, some scenarios are better handled with commands — they're faster and more precise. My idea is to split the user's input text by spaces, take the first token, and match it against a command dictionary. If it matches, the user wants to execute a command; pass it to the command handler. If it doesn't match, the user is sending natural language, which should be routed to AI modules.
 
-我在之前一篇介绍 `__init_subclass__()` 方法的博客中有提到过怎么处理命令，不过那里面只能处理简单格式的命令，命令文本只能按空格切片，不支持 `--xx` 这样的参数。在想着怎么处理这些不同形式的命令参数时，我突然想起来 Python 标准库里面的 `argparse`。直接用 `argparse` 来解析不更方便嘛！简单看了下 `argparse` 的文档和源码，感觉应该可行，说干就干！
+I mentioned how to handle commands in a previous blog post about `__init_subclass__()`, but that approach only supported simple command formats where the text is split by spaces without `--xx` style parameters. While pondering how to handle these different parameter formats, I suddenly remembered Python's standard library `argparse`. Why not use `argparse` directly — it'd be much more convenient! After briefly reviewing the `argparse` docs and source code, it seemed feasible. Let's do it!
 
-## 流程逻辑
+## Flow Logic
 
-简单描述下流程逻辑：
+Here's a brief description of the flow:
 
-1. 用户通过 HTTP API `/api/chat` 发送消息
-2. 后端应用接收到消息后，按空格分割用户输入的文本，拿到第一段
-3. 匹配命令字典，如果没匹配到，则当成自然语言处理
-4. 匹配到命令字典后，交给命令类处理。命令类创建命令解析器来解析参数
-5. 返回结果给用户
+1. User sends a message via HTTP API `/api/chat`
+2. The backend splits the input text by spaces and takes the first token
+3. Matches against the command dictionary. If no match, treat as natural language
+4. If matched, hand it to the command handler class. The command class creates an argument parser to parse parameters
+5. Return results to the user
 
-按照习惯，具体命令类是动态加载的，不需要在代码中挨个引入。这样以后添加命令时，只要在指定目录添加代码文件，然后按照规范开发具体命令类即可。
+According to convention, specific command classes are dynamically loaded without needing to import them individually. This way, adding new commands later only requires adding a code file in the specified directory and developing the command class following the specification.
 
-本文主要介绍如何用 `argparse` 在 web 应用中解析用户命令，并不包含 AI 处理自然语言的相关实现，所以本文用到的第三方依赖只有 FastAPI 充当 HTTP 框架，换成 Flask 或其它框架也是没问题的。
+This article focuses on how to use `argparse` to parse user commands in a web application. It does not include AI-related natural language processing. Therefore, the only third-party dependency used is FastAPI as the HTTP framework — it could be replaced with Flask or any other framework.
 
-## 代码实现
+## Code Implementation
 
-代码结构：
+Code structure:
 
 ```
 ├── internal
@@ -46,15 +47,15 @@ slug = 'argparse-in-chatbot'
 └── README.md
 ```
 
-### 核心抽象：ChatArgparser 与 ChatCommand
+### Core Abstractions: ChatArgparser and ChatCommand
 
-`argparse` 是为命令行工具设计的，默认行为是解析出错时直接打印错误信息并退出进程，这显然不适合 web 应用。所以我们需要继承 `argparse.ArgumentParser`，重写它的 `error()`、`exit()` 和 `print_help()` 方法，把"退出进程"变成"抛出异常"。这样一来，异常被上层捕获后，就能以 HTTP 响应的形式返回给用户。
+`argparse` is designed for command-line tools. Its default behavior on parsing errors is to print an error message and exit the process — clearly unsuitable for web applications. So we need to subclass `argparse.ArgumentParser` and override its `error()`, `exit()`, and `print_help()` methods, turning "exit process" into "raise exception." This way, the exception is caught by the upper layer and returned as an HTTP response.
 
-`ChatArgparser` 做了三件事：
+`ChatArgparser` does three things:
 
-- 重写 `error()`：不调用 `sys.exit()`，而是记录错误信息并抛出 `argparse.ArgumentError`。
-- 重写 `exit()`：`argparse` 在用户输入 `--help` 时会调用 `exit()`，这里同样改为抛异常，同时把帮助文本附在异常信息里。
-- 重写 `print_help()`：把帮助信息输出到 `StringIO` 缓冲区，存起来备用。
+- Override `error()`: Instead of calling `sys.exit()`, log the error and raise `argparse.ArgumentError`.
+- Override `exit()`: `argparse` calls `exit()` when the user enters `--help`. Change it to raise an exception, attaching the help text to the error message.
+- Override `print_help()`: Output help text to a `StringIO` buffer for later use.
 
 ```python
 class ChatArgparser(argparse.ArgumentParser):
@@ -72,20 +73,20 @@ class ChatArgparser(argparse.ArgumentParser):
         raise argparse.ArgumentError(None, self.error_message)
 ```
 
-`ChatCommand` 是所有命令的抽象基类，定义了两个接口：`create_parser()` 返回一个 `ChatArgparser` 实例，声明该命令接受的参数；`run()` 是异步方法，执行实际的命令逻辑。
+`ChatCommand` is the abstract base class for all commands. It defines two interfaces: `create_parser()` returns a `ChatArgparser` instance declaring the command's accepted parameters; `run()` is an async method that executes the actual command logic.
 
-### 命令加载：自动发现与注册
+### Command Loading: Auto-Discovery and Registration
 
-`load_chat_commands()` 函数负责扫描 `internal.cmd` 包下的所有模块，找出继承自 `ChatCommand` 的类，然后根据类属性 `main_name`、`is_enable`、`is_visible` 来判断是否注册。
+The `load_chat_commands()` function scans all modules under the `internal.cmd` package, finds classes inheriting from `ChatCommand`, and decides whether to register them based on class attributes `main_name`, `is_enable`, and `is_visible`.
 
-跳过 `base` 和 `__init__` 这两个模块，避免把基类和自己注册进去。每个命令类需要定义几个类属性：
+It skips the `base` and `__init__` modules to avoid registering the base class or itself. Each command class needs to define several class attributes:
 
-- `main_name`：命令名，以 `/` 开头，比如 `/demo`。
-- `description`：命令的简要说明。
-- `is_enable`：是否启用该命令，关闭后不会被注册。
-- `is_visible`：是否在帮助列表中显示，适合隐藏管理员命令。
+- `main_name`: Command name, starting with `/`, e.g., `/demo`.
+- `description`: Brief command description.
+- `is_enable`: Whether the command is enabled. Disabled commands won't be registered.
+- `is_visible`: Whether to show in the help list, suitable for hiding admin commands.
 
-`HelpCommand` 是内置的帮助命令，遍历所有已注册的可见命令，拼接出帮助信息返回。
+`HelpCommand` is the built-in help command that iterates through all registered visible commands and returns the help information.
 
 ```python
 class HelpCommand(ChatCommand):
@@ -101,11 +102,11 @@ class HelpCommand(ChatCommand):
         return help_message
 ```
 
-### 具体命令示例
+### Example Command
 
-以 `DemoCommand` 为例，它接受 `--name` 和 `--age` 两个参数。在 `run()` 中，先用 `shlex.split()` 把用户消息按 shell 语法拆成列表，去掉第一个元素（即命令本身），然后把剩余参数交给 `ChatArgparser` 解析。
+Take `DemoCommand` as an example. It accepts `--name` and `--age` parameters. In `run()`, first use `shlex.split()` to split the user message by shell syntax into a list, remove the first element (the command itself), then pass the remaining arguments to `ChatArgparser` for parsing.
 
-这里用 `shlex.split()` 而不是直接 `str.split()`，是因为用户在 IM 中输入参数时可能会用引号包裹有空格的参数值，`shlex.split()` 能正确处理这种情况。
+`shlex.split()` is used instead of `str.split()` because users may wrap parameter values with spaces in quotes within IM input, and `shlex.split()` handles this correctly.
 
 ```python
 class DemoCommand(ChatCommand):
@@ -126,28 +127,28 @@ class DemoCommand(ChatCommand):
         return parser
 ```
 
-`AdminCommand` 的结构类似，不同之处在于 `is_visible = False`，这样它不会出现在 `/help` 的输出中，只有知道具体命令的管理员才能使用。
+`AdminCommand` has a similar structure, except `is_visible = False`, so it won't appear in `/help` output. Only administrators who know the specific command can use it.
 
-### HTTP 接口：/api/chat
+### HTTP Endpoint: /api/chat
 
-`main.py` 中的 `/api/chat` 端点接收用户消息，处理流程如下：
+The `/api/chat` endpoint in `main.py` receives user messages. The processing flow is:
 
-1. 用 `strip().split(" ")` 取出第一个词，判断是否以 `/` 开头。
-2. 不以 `/` 开头，说明是自然语言，直接返回，交给 AI 模块处理（本文略过）。
-3. 以 `/` 开头，调用 `load_chat_commands()` 查找对应命令。找不到也按自然语言处理。
-4. 找到命令后，实例化命令类，调用 `run()` 执行。
-5. 整个流程用 `try/except` 包裹，捕获 `argparse.ArgumentError`——如果异常信息以 `"Help requested:"` 开头，说明用户输入了 `--help`，直接把帮助文本返回；否则返回解析错误提示。
+1. Use `strip().split(" ")` to get the first word and check if it starts with `/`.
+2. If it doesn't start with `/`, treat as natural language and return directly (AI handling is beyond this article's scope).
+3. If it starts with `/`, call `load_chat_commands()` to find the matching command. If not found, treat as natural language.
+4. If found, instantiate the command class and call `run()` to execute.
+5. The entire flow is wrapped in `try/except`, catching `argparse.ArgumentError` — if the error message starts with `"Help requested:"`, the user entered `--help`, so return the help text; otherwise, return a parsing error prompt.
 
 ```python
 @app.post("/api/chat")
 async def post_chat(req: RequestChat):
     msg_list = req.message.strip().split(" ")
     if not msg_list[0].startswith("/"):
-        return {"info": "自然语言, 预期将由AI处理"}
+        return {"info": "Natural language, expected to be handled by AI"}
 
     cmders = load_chat_commands()
     if msg_list[0] not in cmders:
-        return {"info": "未知命令, 预期将由AI处理"}
+        return {"info": "Unknown command, expected to be handled by AI"}
 
     cmd_cls = cmders[msg_list[0]]["cmdcls"]
     cmd_instance = cmd_cls(req.message)
@@ -155,11 +156,11 @@ async def post_chat(req: RequestChat):
     return {"result": rst}
 ```
 
-### 实际效果
+### Actual Results
 
-*实际应用中可以稍微美化下输出*
+*The output can be prettified in real applications.*
 
-1. 发送`/help`, 获取可用命令。因为`/admin`设置不可见，所以不会输出出来
+1. Send `/help` to get available commands. Since `/admin` is set to invisible, it won't appear.
 
 ```shell
 curl --request POST \
@@ -170,14 +171,14 @@ curl --request POST \
   "message": "/help"
 }'
 
-# 响应
+# Response
 {
   "session_id": "qwerasd",
   "result": "Available commands:\n/demo: Demo command for testing\n/help: Show help message for all commands\n"
 }
 ```
 
-2. 用户发送 `/demo --help`
+2. User sends `/demo --help`
 
 ```shell
 curl --request POST \
@@ -188,14 +189,14 @@ curl --request POST \
   "message": "/demo --help"
 }'
 
-# 响应
+# Response
 {
   "session_id": "qwerasd",
   "result": "Help requested:\nusage: demo [-h] [--name NAME] [--age AGE]\n\nDemo command for testing\n\noptions:\n  -h, --help   show this help message and exit\n  --name NAME  Name of the user\n  --age AGE    Age of the user\n"
 }
 ```
 
-3. 用户发送 `/admin --host 192.168.1.1 --port=12345`
+3. User sends `/admin --host 192.168.1.1 --port=12345`
 
 ```shell
 curl --request POST \
@@ -206,20 +207,20 @@ curl --request POST \
   "message": "/admin --host 192.168.1.1 --port=12345"
 }'
 
-# 响应
+# Response
 {
   "session_id": "qwerasd",
   "result": "Admin command executed! Host: 192.168.1.1, Port: 12345"
 }
 ```
 
-## 改进点
+## Improvements
 
-- 命令类是否启用和可见性应该配置在别处，或者支持动态配置。
-- 实际应用中要考虑添加权限控制。
-- 动态加载命令类的方法的确有点黑箱，如果命令不多的话，也可以在代码中手动挨个导入。
+- Command class enable/visible status should be configured externally, or support dynamic configuration.
+- Real applications should add permission control.
+- The dynamic command loading approach has some magic to it; if there aren't many commands, you can import them manually.
 
-## 完整示例代码
+## Complete Example Code
 
 ### `internal/cmd/base.py`
 
@@ -230,7 +231,6 @@ from io import StringIO
 
 
 class ChatArgparser(argparse.ArgumentParser):
-    """自定义的ArgumentParser, 用于解析聊天命令的参数, 重写error和exit方法, 捕获解析错误并返回错误信息, 而不是直接退出程序"""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.parse_error_triggered = False
@@ -238,21 +238,16 @@ class ChatArgparser(argparse.ArgumentParser):
         self.help_text = ""
 
     def print_help(self, file=None):
-        """重写print_help方法, 捕获帮助信息, 以便在解析错误时返回给用户"""
         help_buffer = StringIO()
         super().print_help(help_buffer)
         self.help_text = help_buffer.getvalue()
 
     def error(self, message):
-        """重写ArgumentParser的error方法: 不退出进程, 捕获解析错误并记录错误信息"""
         self.parse_error_triggered = True
         self.error_message = message
-
-        # 抛出异常后, 中断后续的参数解析流程
         raise argparse.ArgumentError(None, message)
 
     def exit(self, status=0, message=None):
-        """重写ArgumentParser的exit方法: 不退出进程, 捕获退出调用并记录错误信息"""
         self.parse_error_triggered = True
         if self.help_text:
             self.error_message = f"Help requested:\n{self.help_text}"
@@ -260,23 +255,19 @@ class ChatArgparser(argparse.ArgumentParser):
             self.error_message = message
         else:
             self.error_message = "Exit triggered without message"
-
         raise argparse.ArgumentError(None, self.error_message)
 
 
 class ChatCommand(ABC):
-    """聊天命令的抽象基类, 定义了命令的基本结构和接口"""
     def __init__(self, user_message: str):
         self.user_message = user_message
 
     @abstractmethod
     def create_parser(self) -> ChatArgparser:
-        """创建并返回一个ChatArgparser实例, 定义命令的参数结构"""
         ...
 
     @abstractmethod
     async def run(self) -> str:
-        """执行命令的异步方法, 返回命令执行结果"""
         ...
 ```
 
@@ -301,9 +292,9 @@ class DemoCommand(ChatCommand):
 
     async def run(self) -> str:
         try:
-            cmd_args = shlex.split(self.user_message)[1:]  # 去掉命令本身
+            cmd_args = shlex.split(self.user_message)[1:]
         except ValueError as e:
-            return f"shlex 参数解析错误: {str(e)}"
+            return f"shlex parsing error: {str(e)}"
 
         try:
             parsed_args = self.arg_parser.parse_args(cmd_args)
@@ -312,21 +303,13 @@ class DemoCommand(ChatCommand):
             error_msg = str(e)
             if error_msg.startswith("Help requested:"):
                 return error_msg
-            return f"parser 参数解析错误: {str(e)}"
+            return f"Parser error: {str(e)}"
 
     def create_parser(self) -> ChatArgparser:
         parser = ChatArgparser(prog="demo", description=self.description)
 
-        parser.add_argument(
-            "--name",
-            type=str,
-            help="Name of the user",
-        )
-        parser.add_argument(
-            "--age",
-            type=int,
-            help="Age of the user",
-        )
+        parser.add_argument("--name", type=str, help="Name of the user")
+        parser.add_argument("--age", type=int, help="Age of the user")
         return parser
 ```
 
@@ -343,7 +326,7 @@ class AdminCommand(ChatCommand):
     main_name: str = "/admin"
     description: str = "Admin command"
     is_enable: bool = True
-    is_visible: bool = False  # 管理命令默认不在/help中显示, 需要管理员知道具体命令才使用
+    is_visible: bool = False
 
     def __init__(self, user_message: str):
         super().__init__(user_message)
@@ -351,9 +334,9 @@ class AdminCommand(ChatCommand):
 
     async def run(self) -> str:
         try:
-            cmd_args = shlex.split(self.user_message)[1:]  # 去掉命令本身
+            cmd_args = shlex.split(self.user_message)[1:]
         except ValueError as e:
-            return f"shlex 参数解析错误: {str(e)}"
+            return f"shlex parsing error: {str(e)}"
 
         try:
             parsed_args = self.arg_parser.parse_args(cmd_args)
@@ -362,21 +345,13 @@ class AdminCommand(ChatCommand):
             error_msg = str(e)
             if error_msg.startswith("Help requested:"):
                 return error_msg
-            return f"parser 参数解析错误: {str(e)}"
+            return f"Parser error: {str(e)}"
 
     def create_parser(self) -> ChatArgparser:
         parser = ChatArgparser(prog="admin", description=self.description)
 
-        parser.add_argument(
-            "--host",
-            type=str,
-            help="Hostname or IP address of the server",
-        )
-        parser.add_argument(
-            "--port",
-            type=int,
-            help="Port number of the server",
-        )
+        parser.add_argument("--host", type=str, help="Hostname or IP address")
+        parser.add_argument("--port", type=int, help="Port number")
         return parser
 ```
 
@@ -402,19 +377,16 @@ _loaded_chat_commands: Dict[str, CommandInfo] = {}
 
 
 class HelpCommand(ChatCommand):
-    """内置的帮助命令, 用于展示所有可用命令的帮助信息"""
     main_name: str = "/help"
     description: str = "Show help message for all commands"
     is_visible: bool = True
 
     def create_parser(self) -> ChatArgparser:
-        """HelpCommand 不需要参数, 直接返回一个空的ChatArgparser实例"""
         return ChatArgparser(
             prog="help", description="Show help message for all commands"
         )
 
     async def run(self) -> str:
-        """执行帮助命令, 返回所有可用命令的帮助信息"""
         if not _loaded_chat_commands:
             load_chat_commands()
 
@@ -426,7 +398,6 @@ class HelpCommand(ChatCommand):
 
 
 def load_chat_commands() -> Dict[str, CommandInfo]:
-    """加载所有命令类"""
     if _loaded_chat_commands:
         return _loaded_chat_commands
 
@@ -435,10 +406,6 @@ def load_chat_commands() -> Dict[str, CommandInfo]:
     print(f"Loading chat commands from package: {pkg_path}")
 
     for _, name, ispkg in pkgutil.iter_modules(pkg.__path__, pkg.__name__ + "."):
-        # 如果以后各个命令类比较复杂, 可以把命令类放在一个单独的模块中, 加载的时候只加载模块
-        # 目前命令类比较简单, 就直接放在internal.cmd包下, 加载的时候直接加载模块中的类
-        # if not ispkg:
-        #     continue
         if ispkg:
             continue
         skipped_modules = {"base", "__init__"}
@@ -469,7 +436,6 @@ def load_chat_commands() -> Dict[str, CommandInfo]:
                         "is_visible": is_visible,
                     }
 
-    # 手动注册HelpCommand, 确保/help命令始终可用
     if "/help" not in _loaded_chat_commands:
         _loaded_chat_commands["/help"] = {
             "description": HelpCommand.description,
@@ -530,7 +496,7 @@ async def post_chat(req: RequestChat):
             return {
                 "session_id": req.session_id,
                 "message": req.message,
-                "info": "自然语言, 预期将由AI处理",
+                "info": "Natural language, expected to be handled by AI",
             }
 
         cmders = load_chat_commands()
@@ -538,7 +504,7 @@ async def post_chat(req: RequestChat):
             return {
                 "session_id": req.session_id,
                 "message": req.message,
-                "info": "未知命令, 预期将由AI处理",
+                "info": "Unknown command, expected to be handled by AI",
             }
 
         cmd_cls = cmders[msg_list[0]]["cmdcls"]
@@ -550,9 +516,9 @@ async def post_chat(req: RequestChat):
         error_msg = str(e)
         if error_msg.startswith("Help requested:"):
             return {"session_id": req.session_id, "result": error_msg}
-        return {"session_id": req.session_id, "message": f"参数解析错误: {str(e)}"}
+        return {"session_id": req.session_id, "message": f"Parse error: {str(e)}"}
     except Exception as e:
-        return {"session_id": req.session_id, "message": f"参数解析错误: {str(e)}"}
+        return {"session_id": req.session_id, "message": f"Parse error: {str(e)}"}
 
 
 if __name__ == "__main__":

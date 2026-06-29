@@ -2,6 +2,7 @@
 date = '2026-01-06T16:19:44+08:00'
 draft = false
 title = 'FastAPI - 在异步方法中调用同步方法'
+summary = '解决FastAPI异步方法中调用同步方法阻塞事件循环的问题'
 categories = ["program"]
 tags = ["fastapi", "python"]
 +++

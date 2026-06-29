@@ -2,6 +2,7 @@
 date = '2025-12-11T00:40:44+08:00'
 draft = false
 title = 'FastAPI - Tracking ID的设计'
+summary = '基于contextvars为FastAPI请求添加tracking_id，实现日志链路追踪'
 categories = ["program"]
 tags = ["fastapi", "python"]
 +++

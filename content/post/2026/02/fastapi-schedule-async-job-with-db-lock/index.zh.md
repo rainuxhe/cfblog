@@ -3,6 +3,7 @@ date = '2026-02-08T23:56:57+08:00'
 draft = false
 title = 'FastAPI 执行异步定时任务：基于数据库的分布式锁实现'
 description = "本文详细介绍如何在 FastAPI 中实现异步定时任务调度器，通过数据库分布式锁解决多进程环境下的任务重复执行问题。"
+summary = 'FastAPI基于数据库分布式锁实现异步定时任务'
 isCJKLanguage = true
 categories = ["program"]
 tags = ["python", "sqlalchemy", "fastapi", "sqlite"]

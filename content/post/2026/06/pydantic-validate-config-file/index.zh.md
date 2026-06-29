@@ -3,6 +3,7 @@ date = '2026-06-29T23:18:44+08:00'
 draft = false
 title = 'Pydantic 校验配置文件'
 description = '在使用配置文件的配置类中，引入pydantic做参数校验'
+summary = '使用Pydantic校验配置文件参数'
 categories = [
     "program"
 ]

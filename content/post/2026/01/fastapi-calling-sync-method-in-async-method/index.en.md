@@ -2,6 +2,7 @@
 date = '2026-01-06T16:19:44+08:00'
 draft = false
 title = 'FastAPI - Calling Synchronous Methods in FastAPI Asynchronous Methods'
+summary = 'Solve blocking when calling sync methods in FastAPI async code'
 categories = ["program"]
 tags = ["fastapi", "python"]
 +++

@@ -74,6 +74,7 @@ languages:
 markup:
   highlight:
     lineNos: true
+    tabWidth: 4
 
 params:
   env: production # to enable google analytics, opengraph, twitter-cards and schema.

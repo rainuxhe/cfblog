@@ -1,43 +1,44 @@
 +++
 date = '2026-02-07T15:05:31+08:00'
 draft = false
-title = 'MCP官方Go SDK尝鲜'
-description = 'MCP 官方 Go SDK尝鲜, 构建MCP Server和支持LLM自主抉择tool的MCP Client'
+title = 'Exploring the Official MCP Go SDK'
+description = 'Hands-on experience with the official MCP Go SDK: Building an MCP Server and an MCP Client that enables LLMs to autonomously select tools'
+summary = 'Build MCP Server and Client with the Go SDK'
 categories = ["program", "ai"]
 tags = ["mcp", "golang", "ai"]
 keywords = [
     "mcp",
     "golang",
-    "ai",
+	"ai",
 ]
 slug = "exploring-the-official-mcp-go-sdk"
 +++
 
-## 前言
+## Introduction
 
-此前在 MCP 官网就注意到官方提供了 Go SDK，近期由于在 Python 环境下开发 MCP Server 有点"审美疲劳"，因此决定使用 Go 语言尝尝鲜。
+I previously noticed on the MCP official website that an official Go SDK was available. Recently, after developing MCP Servers in Python environments for a while, I decided to try something different and explore Go.
 
-从个人实际体验来看，Go 语言在并发处理方面确实具有显著优势：无需纠结于同步阻塞、异步事件循环、多进程多线程通信等复杂的并发问题，goroutine 一把梭哈。同时，Go 语言的部署也非常便捷，编译后生成的静态二进制文件具有良好的可移植性，可以在不同环境中直接运行。
+From my personal experience, Go demonstrates significant advantages in concurrent processing: there's no need to worry about complex concurrency issues like synchronous blocking, asynchronous event loops, or inter-process/thread communication—goroutines handle it all elegantly. Additionally, Go offers convenient deployment; the compiled static binary files have excellent portability and can run directly across different environments.
 
-然而，这种便利性也伴随着一定的代价。相较于 Python，使用 Go 语言实现 MCP 功能相对复杂一些，开发效率略低。这就是软件工程中的经典权衡了：运行成本与开发成本往往难以兼得，需要根据具体场景进行取舍。
+However, this convenience comes with certain trade-offs. Compared to Python, implementing MCP functionality in Go is relatively more complex, with slightly lower development efficiency. This represents a classic software engineering trade-off: runtime costs and development costs are often difficult to optimize simultaneously, requiring careful consideration based on specific scenarios.
 
-## MCP 协议简介
+## Brief Introduction to MCP Protocol
 
-*可能都耳熟能详了，但以防还有不熟悉的朋友，先简单介绍下MCP*
+*You might already be familiar with this, but for those who aren't, here's a quick overview of MCP.*
 
-Model Context Protocol (MCP) 是一种标准化的协议，旨在为 AI 模型提供统一的工具调用接口。通过 MCP，开发者可以将各种工具、服务和数据源暴露给 AI 模型，使其能够执行超出基础语言模型能力范围的操作。MCP 支持多种传输协议，包括 HTTP 和 Stdio，为不同场景下的集成提供了灵活性。
+Model Context Protocol (MCP) is a standardized protocol designed to provide AI models with unified tool invocation interfaces. Through MCP, developers can expose various tools, services, and data sources to AI models, enabling them to perform operations beyond the capabilities of basic language models. MCP supports multiple transport protocols, including HTTP and Stdio, offering flexibility for integration in different scenarios.
 
-## 一个简单的 MCP Server 示例
+## A Simple MCP Server Example
 
-MCP 官方 Go SDK 在定义工具（Tool）时，要求明确指定输入参数和输出结果的数据结构。对于功能较为简单的工具，也可以直接使用 `any` 类型。以下是一个完整的 MCP Server 示例，提供了三个实用工具：
+The official MCP Go SDK requires explicit definition of input parameters and output result data structures when defining tools (Tool). For simpler tools, the `any` type can also be used directly. Below is a complete MCP Server example providing three practical tools:
 
-1. **`getCurrentDatetime`**：获取当前时间，返回 RFC3339 格式（`2006-01-02T15:04:05Z07:00`）的时间戳字符串。由于不需要输入参数，因此参数类型定义为 `any`，输出同样使用 `any` 类型。
+1. **`getCurrentDatetime`**: Retrieves the current time, returning a timestamp string in RFC3339 format (`2006-01-02T15:04:05Z07:00`). Since no input parameters are required, the parameter type is defined as `any`, with the output also using the `any` type.
 
-2. **`getComputerStatus`**：获取当前系统的关键信息，包括 CPU 使用率、内存使用情况、系统版本等。该工具接受一个 `CPUSampleTime` 参数，对应的输入结构体为 `GetComputerStatusIn`，输出结构体为 `GetComputerStatusOut`（Go SDK 的示例中通常采用 `xxxIn` 和 `xxxOut` 的命名约定来区分工具的输入输出结构体）。
+2. **`getComputerStatus`**: Retrieves key system information including CPU usage, memory utilization, and system version. This tool accepts a `CPUSampleTime` parameter, with the corresponding input struct being `GetComputerStatusIn` and the output struct being `GetComputerStatusOut` (the Go SDK examples typically follow the naming convention of `xxxIn` and `xxxOut` to distinguish between tool input and output structs).
 
-3. **`getDiskInfo`**：获取所有硬盘分区的使用信息和文件系统详情。该工具无需输入参数，仅定义了输出结构体 `GetDiskInfoOut`。
+3. **`getDiskInfo`**: Retrieves usage information and filesystem details for all disk partitions. This tool requires no input parameters and only defines an output struct `GetDiskInfoOut`.
 
-在完成所有工具逻辑的实现后，最后一步是启动服务。以下示例采用 Streamable HTTP 模式启动，同时也保留了 Stdio Transport 模式的注释代码供参考。
+After implementing all tool logic, the final step is to start the service. The following example uses Streamable HTTP mode, with commented-out Stdio Transport mode code preserved for reference.
 
 ```go {linenos=true}
 package main
@@ -157,7 +158,7 @@ func main() {
 	// ctx := context.Background()
 
 	server := mcp.NewServer(&mcp.Implementation{Name: "MCP_Demo", Version: "0.0.1"}, &mcp.ServerOptions{
-		Instructions: "日期时间相关的 Server",
+		Instructions: "Date and time related Server",
 	})
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "get_current_datetime",
@@ -194,9 +195,9 @@ func main() {
 }
 ```
 
-MCP Server 代码编译通过后，可以在支持 MCP 协议的开发工具（如 VS Code）中进行测试验证。以下是一个典型的 `.vscode/mcp.json` 配置示例：
+After successfully compiling the MCP Server code, it can be tested and verified in MCP-compatible development tools (such as VS Code). Below is a typical `.vscode/mcp.json` configuration example:
 
-```json
+```json {linenos=true}
 {
     "servers": {
         "demo-http": {
@@ -208,11 +209,11 @@ MCP Server 代码编译通过后，可以在支持 MCP 协议的开发工具（�
 }
 ```
 
-启动 MCP Server 后，可以通过向 LLM 提出相关问题来验证工具是否能够被正确调度和执行。
+After starting the MCP Server, you can verify whether the tools are correctly scheduled and executed by asking relevant questions to the LLM.
 
-## 一个完整的 MCP Client 实现
+## A Complete MCP Client Implementation
 
-为了构建端到端的 MCP 应用，我们还需要实现一个 MCP Client，使其能够与 LLM 协同工作，自动选择并调用合适的工具。以下是一个功能完整的 MCP Client 实现，其中包含了与 OpenAI 兼容 API 的集成示例（`callOpenAI` 函数）。
+To build an end-to-end MCP application, we also need to implement an MCP Client that can work collaboratively with the LLM to automatically select and invoke appropriate tools. Below is a fully functional MCP Client implementation, including an integration example with OpenAI-compatible APIs (`callOpenAI` function).
 
 ```go {linenos=true}
 package main
@@ -276,19 +277,19 @@ func main() {
 	}
 }
 
-// callOpenAI 调用 OpenAI API 接口处理用户问题
-// 该函数支持流式（stream）和非流式（non-stream）两种响应方式
+// callOpenAI invokes the OpenAI API to handle user questions
+// This function supports both streaming and non-streaming response modes
 //
-// 参数:
-//   - ctx: 控制操作生命周期的上下文
-//   - question: 用户提出的问题字符串
-//   - stream: 布尔值，指定是否使用流式响应
+// Parameters:
+//   - ctx: Context controlling the operation lifecycle
+//   - question: User's question as a string
+//   - stream: Boolean specifying whether to use streaming response
 func callOpenAI(ctx context.Context, question string, stream bool) {
 	client := openai.NewClient(option.WithAPIKey(FLAG_APIKEY), option.WithBaseURL(FLAG_BaseURL))
-	systemPrompt := "请用亲切热情的风格回答用户的问题"
+	systemPrompt := "Please answer the user's questions in a friendly and enthusiastic manner"
 
 	if stream {
-		// 创建流式响应请求
+		// Create streaming response request
 		streamResp := client.Chat.Completions.NewStreaming(ctx, openai.ChatCompletionNewParams{
 			Messages: []openai.ChatCompletionMessageParamUnion{
 				openai.SystemMessage(systemPrompt),
@@ -303,7 +304,7 @@ func callOpenAI(ctx context.Context, question string, stream bool) {
 				log.Fatalln(err)
 			}
 		}()
-		// 遍历流式响应并逐块输出内容
+		// Iterate through streaming response and output content chunk by chunk
 		for streamResp.Next() {
 			data := streamResp.Current()
 			fmt.Print(data.Choices[0].Delta.Content)
@@ -314,7 +315,7 @@ func callOpenAI(ctx context.Context, question string, stream bool) {
 		}
 
 	} else {
-		// 创建非流式响应请求
+		// Create non-streaming response request
 		chatCompletion, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
 			Messages: []openai.ChatCompletionMessageParamUnion{
 				openai.SystemMessage(systemPrompt),
@@ -325,25 +326,26 @@ func callOpenAI(ctx context.Context, question string, stream bool) {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		// 输出非流式响应内容
+		// Output non-streaming response content
 		fmt.Println(chatCompletion.Choices[0].Message.Content)
 	}
 }
 
-// callOpenAIWithTools 使用 OpenAI API 和 MCP 工具调用来处理用户问题
-// 该函数创建一个 OpenAI 客户端和 MCP 客户端，将 MCP 工具转换为 OpenAI 可使用的格式，
-// 并执行完整的工具调用流程，包括初始调用和可能的后续调用
+// callOpenAIWithTools processes user questions using OpenAI API with MCP tool calls
+// This function creates both an OpenAI client and an MCP client, converts MCP tools
+// to OpenAI-compatible format, and executes the complete tool calling workflow,
+// including initial calls and potential follow-up calls
 //
-// 参数:
-//   - ctx: 控制操作生命周期的上下文
-//   - question: 用户提出的问题字符串
+// Parameters:
+//   - ctx: Context controlling the operation lifecycle
+//   - question: User's question as a string
 func callOpenAIWithTools(ctx context.Context, question string) {
-	// 创建 OpenAI 客户端，使用 API 密钥和基础 URL 配置
+	// Create OpenAI client configured with API key and base URL
 	llmClient := openai.NewClient(option.WithAPIKey(FLAG_APIKEY), option.WithBaseURL(FLAG_BaseURL))
-	// 创建 MCP 客户端，指定名称和版本
+	// Create MCP client with specified name and version
 	mcpClient := mcp.NewClient(&mcp.Implementation{Name: "mcp-client", Version: "0.0.1"}, nil)
 	var transport mcp.Transport
-	// 根据命令行标志选择传输协议（stdio 或 http）
+	// Select transport protocol based on command-line flag (stdio or http)
 	switch FLAG_MCP_TRANSPORT {
 	case "stdio":
 		transport = &mcp.CommandTransport{Command: exec.Command(FLAG_MCP_URI)}
@@ -352,7 +354,7 @@ func callOpenAIWithTools(ctx context.Context, question string) {
 	default:
 		log.Fatalf("unknown transport, %s", FLAG_MCP_TRANSPORT)
 	}
-	// 建立与 MCP 服务器的连接
+	// Establish connection with MCP server
 	session, err := mcpClient.Connect(ctx, transport, nil)
 	if err != nil {
 		log.Fatalf("MCP client connects to mcp server failed, err: %v", err)
@@ -364,16 +366,16 @@ func callOpenAIWithTools(ctx context.Context, question string) {
 		}
 	}()
 
-	// 获取可用的 MCP 工具列表
+	// Get available MCP tool list
 	mcpTools, err := session.ListTools(ctx, &mcp.ListToolsParams{})
 	if err != nil {
 		log.Fatalf("List mcp tools failed, err: %v", err)
 	}
 
 	var legacyTools []openai.ChatCompletionToolUnionParam
-	// 遍历所有 MCP 工具并将其转换为 OpenAI 兼容的工具格式
+	// Iterate through all MCP tools and convert them to OpenAI-compatible tool format
 	for _, tool := range mcpTools.Tools {
-		// 将 MCP 工具输入模式转换为 OpenAI 函数参数
+		// Convert MCP tool input schema to OpenAI function parameters
 		if inputSchema, ok := tool.InputSchema.(map[string]any); ok {
 			legacyTools = append(legacyTools, openai.ChatCompletionFunctionTool(
 				openai.FunctionDefinitionParam{
@@ -383,7 +385,7 @@ func callOpenAIWithTools(ctx context.Context, question string) {
 				},
 			))
 		} else {
-			// 如果 InputSchema 不是 map[string]any，使用空参数
+			// If InputSchema is not map[string]any, use empty parameters
 			legacyTools = append(legacyTools, openai.ChatCompletionFunctionTool(
 				openai.FunctionDefinitionParam{
 					Name:        tool.Name,
@@ -394,13 +396,13 @@ func callOpenAIWithTools(ctx context.Context, question string) {
 		}
 	}
 
-	// 设置初始聊天消息，包括系统提示和用户问题
+	// Set initial chat messages including system prompt and user question
 	messages := []openai.ChatCompletionMessageParamUnion{
-		openai.SystemMessage("请用亲切热情的风格回答用户的问题。你可以使用可用的工具来获取信息。"),
+		openai.SystemMessage("Please answer the user's questions in a friendly and enthusiastic manner. You can use available tools to gather information."),
 		openai.UserMessage(question),
 	}
 
-	// 调用 LLM 获取初步响应
+	// Call LLM to get initial response
 	chatCompletion, err := llmClient.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
 		Messages: messages,
 		Model:    FLAG_ModelName,
@@ -418,9 +420,9 @@ func callOpenAIWithTools(ctx context.Context, question string) {
 	choice := chatCompletion.Choices[0]
 	fmt.Printf("LLM response: %s\n", choice.Message.Content)
 
-	// 检查是否需要调用工具
+	// Check if tool calls are needed
 	if choice.FinishReason == "tool_calls" && len(choice.Message.ToolCalls) > 0 {
-		// 遍历所有需要调用的工具
+		// Iterate through all required tool calls
 		for _, toolCall := range choice.Message.ToolCalls {
 			if toolCall.Type != "function" {
 				continue
@@ -428,7 +430,7 @@ func callOpenAIWithTools(ctx context.Context, question string) {
 
 			fmt.Printf("Executing tool: %s with args: %s\n", toolCall.Function.Name, toolCall.Function.Arguments)
 
-			// 解析 JSON 参数
+			// Parse JSON arguments
 			var argsObj map[string]any
 			args := toolCall.Function.Arguments
 
@@ -443,7 +445,7 @@ func callOpenAIWithTools(ctx context.Context, question string) {
 
 			fmt.Printf("Executing tool: %s with parsed args: %v\n", toolCall.Function.Name, argsObj)
 
-			// 执行 MCP 工具调用
+			// Execute MCP tool call
 			result, err := session.CallTool(ctx, &mcp.CallToolParams{
 				Name:      toolCall.Function.Name,
 				Arguments: argsObj,
@@ -453,13 +455,13 @@ func callOpenAIWithTools(ctx context.Context, question string) {
 				continue
 			}
 
-			// 将 MCP 内容转换为字符串
+			// Convert MCP content to string
 			var toolResult string
 			if len(result.Content) > 0 {
 				if textContent, ok := result.Content[0].(*mcp.TextContent); ok {
 					toolResult = textContent.Text
 				} else {
-					// 如果不是 TextContent，转换为 JSON
+					// If not TextContent, convert to JSON
 					if jsonBytes, err := json.Marshal(result.Content[0]); err == nil {
 						toolResult = string(jsonBytes)
 					} else {
@@ -470,7 +472,7 @@ func callOpenAIWithTools(ctx context.Context, question string) {
 
 			fmt.Printf("Tool result: %s\n", toolResult)
 
-			// 添加工具调用消息和工具响应消息
+			// Add tool call message and tool response message
 			messages = append(messages, openai.ChatCompletionMessageParamUnion{
 				OfAssistant: &openai.ChatCompletionAssistantMessageParam{
 					Role: "assistant",
@@ -493,7 +495,7 @@ func callOpenAIWithTools(ctx context.Context, question string) {
 				toolCall.ID,
 			))
 
-			// 进行后续调用以获得最终响应
+			// Make follow-up call to get final response
 			chatCompletion, err = llmClient.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
 				Messages: messages,
 				Model:    FLAG_ModelName,
@@ -508,59 +510,59 @@ func callOpenAIWithTools(ctx context.Context, question string) {
 }
 ```
 
-### 运行测试验证
+### Running Tests for Verification
 
-编译完成后，我们可以进行多轮测试来验证功能的正确性。
+After compilation, we can perform multiple rounds of testing to verify functionality correctness.
 
-**普通问答测试**：
+**Basic Q&A Testing**:
 ```bash
 ./mcp-client-dev -api-key "sk-xxx" -q "how are you"
 ```
 
-还可以加上 `-s` 参数启用流式输出：
+Stream output can also be enabled with the `-s` parameter:
 ```bash
 ./mcp-client-dev -api-key "sk-xxx" -q "how are you" -s
 ```
 
-预期输出：
+Expected output:
 ```
 Hi there! 😊 I'm absolutely wonderful—energized, curious, and *so* happy to be chatting with you! 🌟 How about you? I'd love to hear how your day's going—or what's on your heart or mind right now! 💫 (Bonus points if you share a fun fact, a tiny win, or even just your favorite emoji today! 🍦✨)
 ```
 
-**MCP 工具调用测试**：
+**MCP Tool Call Testing**:
 ```bash
-./mcp-client-dev -api-key "sk-xxx" -mcp-uri "http://127.0.0.1:18001/api/mcp" -q "当前时间是什么"
+./mcp-client-dev -api-key "sk-xxx" -mcp-uri "http://127.0.0.1:18001/api/mcp" -q "What is the current time?"
 ```
 
-预期输出：
+Expected output:
 ```
 LLM response: 
 Executing tool: get_current_datetime with args: {}
 Executing tool: get_current_datetime with parsed args: map[]
 Tool result: "2026-02-02T23:12:54+08:00"
-Final response: 现在是 **2026 年 2 月 2 日 晚上 11:12**（北京时间，UTC+8）✨
-新年的气息还暖暖的～你是在规划什么特别的事情吗？😊 我很乐意帮你安排、提醒或一起畅想哦！
+Final response: It's currently **February 2, 2026, at 11:12 PM** (Beijing Time, UTC+8) ✨
+The festive atmosphere of the New Year is still warm~ Are you planning something special? 😊 I'd be delighted to help you organize, remind you, or brainstorm together!
 ```
 
-## 最佳实践与注意事项
+## Best Practices and Considerations
 
-在实际项目中使用 Go 语言实现 MCP Server 时，建议考虑以下最佳实践：
+When implementing an MCP Server in Go for production projects, consider the following best practices:
 
-1. **错误处理**：确保所有工具函数都有完善的错误处理机制，避免因单个工具失败导致整个服务崩溃。
-2. **性能优化**：对于耗时较长的操作（如系统信息采集），考虑添加超时控制和缓存机制。(在MCP官方文档看到有 Tasks 和 progress 这两个新的原语, 耗时任务也可以试试这两个)
-3. **安全性**：验证所有输入参数，防止恶意输入导致的安全问题。对于涉及系统操作的工具，需要特别注意权限控制。
-4. **日志记录**：添加详细的日志记录，便于调试和监控工具的使用情况。
-5. **配置管理**：将服务配置（如监听地址、端口等）提取到配置文件中，提高可维护性。
+1. **Error Handling**: Ensure all tool functions have comprehensive error handling mechanisms to prevent service crashes due to individual tool failures.
+2. **Performance Optimization**: For time-consuming operations (such as system information collection), consider adding timeout controls and caching mechanisms. (According to the official MCP documentation, there are new primitives called Tasks and progress—these could also be explored for time-consuming tasks.)
+3. **Security**: Validate all input parameters to prevent security issues caused by malicious inputs. For tools involving system operations, pay special attention to permission controls.
+4. **Logging**: Implement detailed logging to facilitate debugging and monitoring of tool usage.
+5. **Configuration Management**: Extract service configurations (such as listening addresses and ports) into configuration files to improve maintainability.
 
-## 总结
+## Conclusion
 
-本文通过一个简单的代码示例展示了如何使用 Go 语言开发 MCP Server 和 Client。虽然 Go 语言在 MCP 开发方面相比 Python 略显复杂，但其在并发处理、性能和部署便利性方面的优势使其成为生产环境的理想选择。
+This article demonstrates how to develop MCP Servers and Clients using Go through a simple code example. Although Go is slightly more complex than Python for MCP development, its advantages in concurrent processing, performance, and deployment convenience make it an ideal choice for production environments.
 
-需要注意的是，本文示例仅涵盖了 MCP 工具调用的基本功能。在实际业务项目中使用 Go 语言实现 MCP Server 时，还需要深入研究 MCP 协议的其他特性，如 Prompt 管理、身份认证（Auth）、会话管理等高级功能的实现方案。
+It's important to note that this example only covers the basic functionality of MCP tool calls. When implementing an MCP Server in Go for actual business projects, further research into other MCP protocol features is necessary, such as Prompt management, authentication (Auth), session management, and other advanced functionalities.
 
-通过合理的设计和实现，基于 Go 语言的 MCP 服务可以为 AI 应用提供稳定、高效、安全的工具调用能力，充分发挥 Go 语言在系统编程和网络服务方面的优势。
+Through thoughtful design and implementation, Go-based MCP services can provide AI applications with stable, efficient, and secure tool invocation capabilities, fully leveraging Go's strengths in system programming and network services.
 
-## 参考
+## References
 
-- MCP 官方页面: [https://modelcontextprotocol.io/docs/getting-started/intro](https://modelcontextprotocol.io/docs/getting-started/intro)
-- MCP 官方 Go SDK: [https://github.com/modelcontextprotocol/go-sdk](https://github.com/modelcontextprotocol/go-sdk)
+- MCP Official Website: [https://modelcontextprotocol.io/docs/getting-started/intro](https://modelcontextprotocol.io/docs/getting-started/intro)
+- MCP Official Go SDK: [https://github.com/modelcontextprotocol/go-sdk](https://github.com/modelcontextprotocol/go-sdk)

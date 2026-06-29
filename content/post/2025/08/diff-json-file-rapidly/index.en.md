@@ -1,31 +1,31 @@
 +++
 date = '2025-08-10T00:21:20+08:00'
 draft = false
-title = 'Go/Python - 快速比较两个JSON文件之间的差异'
+title = 'Go/Python - Rapidly Diff Two JSON Files'
 description = 'Diff Json File Rapidly'
-summary = '用Python和Go快速比较两个大体积JSON文件的差异'
+summary = 'Rapidly diff large JSON files with Python and Go'
 categories = ["program"]
-tags = ["go", "python"]
+tags = ["go", "python", "AI-Translated"]
 keywords = ["go", "python", "json"]
 slug = 'diff-json-file-rapidly'
 +++
 
-## 前言
+## Preface
 
-前段时间同事说他有个需求是比较两个JSON文件之间的差异点，身为DB大神的同事用SQL实现了这个需求，让只会CRUD的我直呼神乎其技。当时用一个一千万多字符、四十多万行的JSON文件来测试，SQL查出来要9秒。周六有时间，拜读了下同事的SQL，打算用Python和Go实现下试试。
+A while ago, a colleague needed to compare differences between two JSON files. Being a database expert, they implemented this using SQL — a feat that left me, someone who only knows CRUD, in awe. We tested it on a JSON file with over 10 million characters and more than 400,000 lines, and the SQL query took 9 seconds. I had some free time on Saturday, so I studied my colleague's SQL and decided to try implementing it in Python and Go.
 
-测试的json文件如下，其中`dst.json`从`src.json`文件复制而来，随便找了个地方改了下。单文件为409510行，字符数为11473154左右。
+The test JSON files are as follows. `dst.json` was copied from `src.json` with a random modification somewhere. Each file has approximately 409,510 lines and about 11,473,154 characters.
 
 ```bash
 $ wc -ml ./src.json dst.json
 409510 11473154 ./src.json
 409510 11473155 dst.json
-819020 22946309 总计
+819020 22946309 total
 ```
 
-## 第三方库jsondiff
+## Third-Party Library: jsondiff
 
-先在网上搜了下有没有现成的第三方库，找到一个叫`jsondiff`的第三方python库。使用`pip`安装后，用法如下
+First, I searched online for existing third-party libraries and found one called `jsondiff`. After installing it with `pip`:
 
 ```python
 import json
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     print(diffs)
 ```
 
-运行测试
+Test run:
 
 ```bash
 $ /usr/bin/time -f 'Elapsed Time: %e s Max RSS: %M kbytes' python third.py
@@ -60,11 +60,11 @@ $ /usr/bin/time -f 'Elapsed Time: %e s Max RSS: %M kbytes' python third.py
 Elapsed Time: 1576.30 s Max RSS: 87732 kbytes
 ```
 
-运行时间太长了，接近半小时，肯定不能拿给别人用。
+The runtime was way too long — nearly half an hour. Definitely not usable.
 
-## Python-仅用标准库
+## Python - Using Only the Standard Library
 
-只试了`jsondiff`这一个第三方库，接下来打算直接参考同事那个SQL的思路，自己只用标准库实现一个。
+After trying just the one third-party library, I decided to follow my colleague's SQL approach and implement it using only the standard library.
 
 ```python
 from typing import Any, List
@@ -81,7 +81,7 @@ class DiffResult:
     right: Any
 
 def add_path(parent: str, key: str) -> str:
-    """将父路径和key name组合成完整的路径字符串"""
+    """Combine parent path and key name into a complete path string"""
     if parent == "":
         return key
     else:
@@ -99,37 +99,35 @@ def read_json(filepath: str) -> Any:
         return data
     
 def collect_diff(path: str, left: Any, right: Any) -> List[DiffResult]:
-    """比较两个json数据结构之间的差异
+    """Compare differences between two JSON data structures
     
     Args:
-        path (str): 当前路径
-        left (Any): 左侧数据
-        right (Any): 右侧数据
+        path (str): Current path
+        left (Any): Left-side data
+        right (Any): Right-side data
 
     Returns:
-        List[DiffResult]: 差异列表
+        List[DiffResult]: List of differences
     """
     diffs: List[DiffResult] = []
 
     if isinstance(left, MutableMapping) and isinstance(right, MutableMapping):
-        # 处理字典：检查 key 的增删改
-        all_keys = set(left.keys()) | set(right.keys())  # 左右两边字典中所有键的并集，用于后续比较这些键在两个字典中的存在情况及对应的值
+        # Handle dict: check key additions, deletions, and modifications
+        all_keys = set(left.keys()) | set(right.keys())
         for k in all_keys:
             l_exists = k in left
             r_exists = k in right
             key_path = add_path(path, k)
 
-            if l_exists and not r_exists:  # 如果一个键只存在于left，则记录为 removed 差异
+            if l_exists and not r_exists:
                 diffs.append(DiffResult(key_path, "removed", left=left[k]))
-            elif not l_exists and r_exists:  # 如果一个键只存在于 right，则记录为 added 差异
+            elif not l_exists and r_exists:
                 diffs.append(DiffResult(key_path, "added", right=right[k]))
             else:
-                # 都存在，递归比较这两个键对应的值
                 diffs.extend(collect_diff(key_path, left[k], right[k]))
 
     elif isinstance(left, MutableSequence) and isinstance(right, MutableSequence):
-        # 处理列表：按索引比较
-        max_len = max(len(left), len(right))  # 找两个列表中最长的长度
+        max_len = max(len(left), len(right))
         for i in range(max_len):
             l_exists = i < len(left)
             r_exists = i < len(right)
@@ -138,15 +136,14 @@ def collect_diff(path: str, left: Any, right: Any) -> List[DiffResult]:
             lv = left[i] if l_exists else None
             rv = right[i] if r_exists else None 
 
-            if l_exists and not r_exists:  # 某个索引的元素只存在于 left，则记录为 removed 差异
+            if l_exists and not r_exists:
                 diffs.append(DiffResult(idx_path, "removed", left=lv))
-            elif not l_exists and r_exists:  # 某个索引的元素只存在于 right，则记录为 added 差异
+            elif not l_exists and r_exists:
                 diffs.append(DiffResult(idx_path, "added", right=rv))
-            else:  # 都存在，递归比较这两个索引对应的值
+            else:
                 diffs.extend(collect_diff(idx_path, lv, rv))
 
     else:
-        # 基本类型或类型不一致
         if left != right:
             diffs.append(DiffResult(path, "modified", left=left, right=right))
 
@@ -169,11 +166,9 @@ if __name__ == "__main__":
                     print(f"Removed: {diff.path}, {diff.left}")
                 case "modified":
                     print(f"Modified: {diff.path}, {diff.left} -> {diff.right}")
-
-    # print(diffs)
 ```
 
-运行测试
+Test run:
 
 ```bash
 $ /usr/bin/time -f 'Elapsed Time: %e s Max RSS: %M kbytes' python main.py
@@ -182,11 +177,11 @@ Modified: timepicker.time_options[7], 7d -> 7dd
 Elapsed Time: 0.46 s Max RSS: 87976 kbytes
 ```
 
-只要 0.46 秒就能比较出来差异点，单论比较性能来说，比`jsondiff`要好很多。
+Just 0.46 seconds to find the differences. In terms of pure comparison performance, this is far better than `jsondiff`.
 
-## Go实现
+## Go Implementation
 
-再换go来实现个命令行工具，同样只需要用标准库即可。
+Let's also implement a command-line tool in Go, again using only the standard library.
 
 ```go
 package main
@@ -258,7 +253,6 @@ func collectDiff(path string, left, right any) []DiffResult {
 		}
 	case []any:
 		if r, ok := right.([]any); ok {
-			// 比较 slice（这里简化：按索引比较）
 			maxLen := len(l)
 			if len(r) > maxLen {
 				maxLen = len(r)
@@ -370,10 +364,9 @@ func main() {
 		}
 	}
 }
-
 ```
 
-运行测试，速度同样很快。
+Test run, equally fast:
 
 ```bash
 $ /usr/bin/time -f 'Elapsed Time: %e s Max RSS: %Mkbytes' ./diffjson -src ./src.json -dst ./dst.json

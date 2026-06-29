@@ -3,6 +3,7 @@ date = '2025-12-25T00:14:28+08:00'
 draft = false
 title = "MCP-01: Introduction and Core Concepts"
 description = "Introduction to MCP (Model Context Protocol)"
+summary = 'Introduction to MCP core concepts and design philosophy'
 categories = ["program", "ai"]
 tags = ["mcp", "python", "ai"]
 +++

@@ -10,7 +10,7 @@ Rainux He <--> 花酒锄作田，一名普通开发者，主要技术栈为 Gola
 
 - Email: [heruos@qq.com](mailto:heruos@qq.com)
 - [https://heruos.top](https://heruos.top)
-- [https://gh.heruos.top](https://gh.heruos.top)
+- ~[https://gh.heruos.top](https://gh.heruos.top)~
 - [https://rainux.cn](https://rainux.cn)
 - [https://wiki.rainux.cn](https://wiki.rainux.cn)
 - [博客园: 花酒锄作田](https://www.cnblogs.com/XY-Heruo)

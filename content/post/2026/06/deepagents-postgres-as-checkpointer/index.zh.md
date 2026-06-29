@@ -3,6 +3,7 @@ date = '2026-06-07T23:58:30+08:00'
 draft = false
 title = 'Deepagents - 使用Postgres作为checkpointer'
 description = 'Deepagents 使用 Postgres 作为 checkpointer'
+summary = 'DeepAgents使用Postgres实现持久化checkpoint'
 categories = [
     "program"
 ]

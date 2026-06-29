@@ -3,6 +3,7 @@ date = '2026-02-05T00:44:06+08:00'
 draft = false
 title = 'Deploying a Single-Node Kubernetes Cluster on Debian 13 with kubeadm and Cilium'
 description = "This article provides a comprehensive guide on deploying a single-node Kubernetes cluster in a local virtual machine environment using Cilium as the network plugin."
+summary = 'Deploy single-node Kubernetes on Debian 13 with kubeadm and Cilium'
 isCJKLanguage = false
 categories = ["operation"]
 tags = ["kubernetes", "harbor", "containerd", "cilium"]

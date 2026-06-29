@@ -3,6 +3,7 @@ date = '2026-02-14T12:40:31+08:00'
 draft = false
 title = 'Flask - 常见应用部署方案'
 description = "本文介绍 Flask 在生产环境常见的几种部署方案"
+summary = 'Flask生产环境常见部署方案对比'
 isCJKLanguage = true
 categories = ["program"]
 tags = ["python", "flask", "docker"]

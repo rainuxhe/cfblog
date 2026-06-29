@@ -3,6 +3,7 @@ date = '2026-06-08T20:00:47+08:00'
 draft = false
 title = 'Deepagents - 配置 MCP Server'
 description = 'Deepagents 配置 MCP Server'
+summary = 'DeepAgents通过MCP Server集成外部工具'
 categories = [
     "program"
 ]

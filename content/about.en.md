@@ -10,6 +10,6 @@ Rainux He <--> 花酒锄作田, a normal developer, mainly develop Golang and Py
 
 - Email: [heruos@qq.com](mailto:heruos@qq.com)
 - [https://heruos.top](https://heruos.top)
-- [https://gh.heruos.top](https://gh.heruos.top)
+- ~[https://gh.heruos.top](https://gh.heruos.top)~
 - [https://rainux.cn](https://rainux.cn)
 - [https://wiki.rainux.cn](https://wiki.rainux.cn)

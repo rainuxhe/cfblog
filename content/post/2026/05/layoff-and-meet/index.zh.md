@@ -3,6 +3,7 @@ date = '2026-05-13T22:40:31+08:00'
 draft = false
 title = '裁员和应对'
 description = "裁员和应对"
+summary = '记录裁员经历与个人应对思考'
 isCJKLanguage = true
 categories = ["job"]
 tags = ["job"]

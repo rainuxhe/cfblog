@@ -1,54 +1,55 @@
 +++
 date = '2026-04-15T00:09:04+08:00'
 draft = false
-title = '企业微信机器人与 DeepAgents 集成Demo'
-summary = '企业微信机器人集成DeepAgents实现智能对话'
+title = 'Integrating Enterprise WeChat Bot with DeepAgents'
+summary = 'Enterprise WeChat bot integration with DeepAgents for smart conversations'
+isCJKLanguage = false
 categories = ["program"]
-tags = ["qywx", "deepagents", "python"]
+tags = ["qywx", "deepagents", "python", "AI-Translated"]
 keywords = ["qywx", "deepagents", "python"]
 slug = 'demo-qywx-and-deepagents'
 +++
 
-## 前言
+## Introduction
 
-企业微信机器人以前通常采用 Webhook 回调方式接收消息，但这种方式存在延迟较高、需要公网服务器等局限性。随着OpenClaw爆火，企业微信机器人也支持 WebSocket 长连接方式。本文介绍一种基于 WebSocket 长连接的企业微信机器人实现方案，并集成 DeepAgents 框架实现智能对话能力。
+Enterprise WeChat (WeCom) bots previously relied on Webhook callbacks for message receiving, which had limitations such as high latency and the need for a public server. Following the rise of OpenClaw, WeCom bots now support WebSocket persistent connections. This article presents a WeCom bot implementation based on WebSocket long connections, integrated with the DeepAgents framework for intelligent conversations.
 
-## 技术栈
+## Tech Stack
 
-- **企业微信 WebSocket SDK**: `wecom-aibot-python-sdk` - 官方提供的 WebSocket 连接库
-- **FastAPI**: 现代异步 Web 框架，用于托管服务和 MCP 服务器
-- **DeepAgents**: 智能体框架，用于构建具备工具调用能力的 AI 助手
-- **LangChain**: 提供 LLM 集成和工具加载能力
-- **MCP (Model Context Protocol)**: 标准化的工具调用协议
+- **WeCom WebSocket SDK**: `wecom-aibot-python-sdk` — official WebSocket connection library
+- **FastAPI**: Modern async web framework for hosting services and MCP servers
+- **DeepAgents**: Agent framework for building AI assistants with tool-calling capabilities
+- **LangChain**: LLM integration and tool loading
+- **MCP (Model Context Protocol)**: Standardized tool invocation protocol
 
-## 项目结构
+## Project Structure
 
 ```
 qywx-bot/
-├── main.py                 # FastAPI 主入口
-├── pyproject.toml         # 项目依赖配置
+├── main.py                 # FastAPI entry point
+├── pyproject.toml         # Project dependencies
 ├── conf/
-│   └── config.toml        # 应用配置
+│   └── config.toml        # Application config
 ├── pkg/
-│   ├── config/            # 配置管理模块
-│   ├── log/               # 日志模块
-│   └── qywx/              # 企业微信客户端
+│   ├── config/            # Config management
+│   ├── log/               # Logging module
+│   └── qywx/              # WeCom client
 └── ai_agent/
-    ├── ai_agent.py        # DeepAgents 集成
-    └── mcp_servers/       # MCP 工具服务器
+    ├── ai_agent.py        # DeepAgents integration
+    └── mcp_servers/       # MCP tool servers
 ```
 
-## 安装依赖
+## Installing Dependencies
 
 ```shell
 uv add fastapi deepagents langchain-openai langchain-mcp-adapters wecom-aibot-python-sdk uvicorn
 ```
 
-## 核心实现
+## Core Implementation
 
-### 1. 配置管理
+### 1. Config Management
 
-使用 TOML 格式管理配置，支持多环境切换：
+Manage configuration in TOML format, supporting multi-environment switching:
 
 ```toml
 [service]
@@ -62,9 +63,9 @@ secret = "your-bot-secret"
 bot_name = "智能助手"
 ```
 
-### 2. 企业微信 WebSocket 客户端
+### 2. WeCom WebSocket Client
 
-通过 WebSocket 长连接接收企业微信消息，实现低延迟实时交互：
+Receive WeCom messages via WebSocket persistent connections for low-latency real-time interaction:
 
 ```python
 class QywxClient:
@@ -77,7 +78,6 @@ class QywxClient:
             )
         )
         
-        # 注册事件处理器
         self.ws_client.on("authenticated", self._on_authenticated)
         self.ws_client.on("event.enter_chat", self._on_event_enter_chat)
         self.ws_client.on("message.text", self._on_message_text)
@@ -85,9 +85,9 @@ class QywxClient:
         await self.ws_client.connect()
 ```
 
-### 3. DeepAgents 集成
+### 3. DeepAgents Integration
 
-构建具备工具调用能力的智能体，通过 MCP 协议加载工具：
+Build an intelligent agent with tool-calling capabilities via the MCP protocol:
 
 ```python
 class AIAgent:
@@ -96,18 +96,18 @@ class AIAgent:
         return create_deep_agent(
             model=self.model,
             tools=tools,
-            system_prompt=f"你是一个企业微信机器人，名字叫{cfg.qywx_bot_name}",
+            system_prompt=f"You are a WeCom bot named {cfg.qywx_bot_name}",
         )
 ```
 
-### 4. 流式输出处理
+### 4. Streaming Output
 
-实现企业微信流式消息回复，提升用户体验：
+Implement WeCom streaming message replies for better user experience:
 
 ```python
 async def _on_message_text(self, frame: WsFrameHeaders):
     stream_id = generate_req_id('stream')
-    await self.ws_client.reply_stream(frame, stream_id, "思考中...", False)
+    await self.ws_client.reply_stream(frame, stream_id, "Thinking...", False)
     
     async for chunk in aiops.invoke(content):
         await self.ws_client.reply_stream(frame, stream_id, str(chunk), False)
@@ -115,9 +115,9 @@ async def _on_message_text(self, frame: WsFrameHeaders):
     await self.ws_client.reply_stream(frame, stream_id, "", True)
 ```
 
-### 5. FastAPI Lifespan 管理
+### 5. FastAPI Lifespan Management
 
-正确管理应用生命周期，包括 WebSocket 连接、MCP 服务器和 AI 代理：
+Properly manage application lifecycle, including WebSocket connections, MCP servers, and AI agent:
 
 ```python
 @asynccontextmanager
@@ -125,7 +125,6 @@ async def lifespan(app: FastAPI):
     await aiops.start()
     await qywx_client.start()
     
-    # 挂载 MCP 服务器
     mcp_app = datetime_mcp.streamable_http_app()
     async with datetime_mcp.session_manager.run():
         app.mount("/mcp", mcp_app)
@@ -135,25 +134,25 @@ async def lifespan(app: FastAPI):
     await qywx_client.shutdown()
 ```
 
-## 关键技术点
+## Key Technical Points
 
-### MCP 服务器挂载
+### Mounting MCP Server
 
-将 FastMCP 服务器挂载到 FastAPI 时，需注意正确初始化 session manager：
+When mounting a FastMCP server onto FastAPI, proper session manager initialization is crucial:
 
 ```python
-# 错误方式：直接挂载会导致 task group 未初始化
+# Wrong: directly mounting leads to uninitialized task group
 app.mount("/mcp", datetime_mcp.streamable_http_app())
 
-# 正确方式：在 lifespan 中启动 session manager
+# Correct: start session manager in lifespan
 async with datetime_mcp.session_manager.run():
     app.mount("/mcp", mcp_app)
     yield
 ```
 
-### 流式消息解析
+### Streaming Message Parsing
 
-DeepAgents 的 `astream()` 返回的 chunk 是嵌套字典结构，需正确提取内容：
+DeepAgents' `astream()` returns nested dict chunks. Proper content extraction:
 
 ```python
 async for chunk in root_agent.astream(input={"messages": [HumanMessage(content=input)]}):
@@ -164,13 +163,13 @@ async for chunk in root_agent.astream(input={"messages": [HumanMessage(content=i
                 yield str(msg.content)
 ```
 
-## 示例代码
+## Example Code
 
-配置模块、日志模块等代码就略过了。MCP Server也略过，之前的文章写过很多遍了，这里就不赘述了。
+Config and logging modules are omitted for brevity. MCP Server implementation is also skipped as it has been covered extensively in previous articles.
 
 ### QywxClient
 
-`pkg/qywx/qywx_client.py` 内封装了企业微信机器人交互的一些方法。
+`pkg/qywx/qywx_client.py` encapsulates WeCom bot interaction methods.
 
 ```python
 from pkg.config import cfg
@@ -180,26 +179,22 @@ from ai_agent import aiops
 import logging
 
 class QywxClient:
-    """企业微信客户端, 通过websockets连接企业微信服务器, 接收消息并处理"""
     logger = get_logger("qywx_client", logging.INFO)
 
     def __init__(self) -> None:
-        self.ws_client: WSClient = None  # type: ignore
+        self.ws_client: WSClient = None
 
     async def _on_authenticated(self):
-        """处理认证成功事件"""
         self.logger.info("Authenticated with Qywx server")
 
     async def _on_event_enter_chat(self, frame: WsFrameHeaders):
-        """处理用户进入聊天事件"""
         self.logger.debug("Received event: enter_chat")
         await self.ws_client.reply_welcome(frame, {
             "msgtype": "text",
-            "text": {'content': f'您好！我是智能助手{cfg.qywx_bot_name}，有什么可以帮您的吗？'},
+            "text": {'content': f'Hello! I am {cfg.qywx_bot_name}. How can I help you?'},
         })
 
     async def _on_message_text(self, frame: WsFrameHeaders):
-        """处理文本消息事件"""
         self.logger.debug("Received text message")
         msg_id = frame.get("body", {}).get("msgid", "")
         user_id = frame.get("body", {}).get("from", {}).get("userid", "")
@@ -210,15 +205,11 @@ class QywxClient:
 
         stream_id = generate_req_id('stream')
 
-        await self.ws_client.reply_stream(frame, stream_id, "小脑瓜努力思考中...", False)
-        # await asyncio.sleep(2)  # 模拟处理时间
+        await self.ws_client.reply_stream(frame, stream_id, "Brain thinking hard...", False)
         
-        # resp = await aiops.ainvoke(input=content)
-        # await self.ws_client.reply_stream(frame, stream_id, resp, True)
         final_text = ""
         async for chunk in aiops.astream(input=content):
             await self.ws_client.reply_stream(frame, stream_id, chunk, False)
-            # final_text += chunk
             final_text = chunk
 
         await self.ws_client.reply_stream(frame, stream_id, final_text, True)
@@ -248,7 +239,7 @@ class QywxClient:
 
 ### AIAgent
 
-AIAgent 是一个 AI 代理类，用于处理企业微信消息。
+AIAgent is an AI agent class for processing WeCom messages.
 
 ```python
 from deepagents import create_deep_agent
@@ -263,28 +254,27 @@ from pkg.log import get_logger
 class AIAgent:
     logger = get_logger("ai_agent")
     def __init__(self):
-        self.model: ChatOpenAI = None  # type: ignore
-        self._mcp_session: ClientSession = None  # type: ignore
+        self.model: ChatOpenAI = None
+        self._mcp_session: ClientSession = None
         self._mcp_server_url = f"http://127.0.0.1:{cfg.service_port}/mcp/"
 
     async def start(self):
         if not self.model:
             self.model = ChatOpenAI(
                 base_url=cfg.agent_base_url,
-                api_key=cfg.agent_api_key,  # type: ignore
+                api_key=cfg.agent_api_key,
                 model=cfg.agent_model,
             )
-    
 
     async def shutdown(self):
-        self.model = None  # type: ignore
+        self.model = None
 
     async def _create_root_agent(self, session: ClientSession):
         tools = await load_mcp_tools(session)
         root_agent = create_deep_agent(
             model=self.model,
             tools=tools,
-            system_prompt=f"你是一个智能助手，名字叫{cfg.qywx_bot_name}, 可以协助用户处理各种问题，并用温和积极的语气回答问题。回答的格式应该符合markdown规范。",
+            system_prompt=f"You are an AI assistant named {cfg.qywx_bot_name}. Help users with various problems in a warm and positive tone. Format your answers with markdown.",
         )
         return root_agent
 
@@ -299,7 +289,6 @@ class AIAgent:
                 async for chunk in root_agent.astream(
                     input={"messages": [HumanMessage(content=input)]}
                 ):
-                    # 从 chunk 字典中提取 AIMessage 的 content
                     if isinstance(chunk, dict):
                         messages = chunk.get("model", {}).get("messages", [])
                         if not messages:
@@ -308,7 +297,7 @@ class AIAgent:
                             if hasattr(msg, "content") and msg.content:
                                 yield str(msg.content)
                     elif hasattr(chunk, "content"):
-                        yield str(chunk.content)  # type: ignore
+                        yield str(chunk.content)
                     else:
                         yield str(chunk)
 
@@ -323,13 +312,11 @@ class AIAgent:
                     input={"messages": [HumanMessage(content=input)]}
                 )
                 return resp["messages"][-1].content
-                
 ```
 
 ### main
 
 ```python
-# main.py
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 import uvicorn
@@ -344,12 +331,9 @@ async def lifespan(app: FastAPI):
     await aiops.start()
     await qywx_client.start()
     
-    # 先获取 MCP app（这会创建 session_manager）
     mcp_app = datetime_mcp.streamable_http_app()
     
-    # 在 FastAPI lifespan 中启动 MCP session manager
     async with datetime_mcp.session_manager.run():
-        # 挂载 MCP app
         app.mount("/mcp", mcp_app)
         yield
     
@@ -365,5 +349,3 @@ app = FastAPI(
 if __name__ == "__main__":
     uvicorn.run("main:app", host=cfg.service_host, port=cfg.service_port)
 ```
-
-

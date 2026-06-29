@@ -3,6 +3,7 @@ date = '2026-06-14T20:02:30+08:00'
 draft = false
 title = 'Deepagents - Human in the Loop'
 description = 'Deepagents Human in the Loop'
+summary = 'DeepAgents人机协作审批流程实现'
 categories = ["program"]
 tags = ["deepagents", "python", "ai"]
 keywords = ["deepagents", "python", "ai"]

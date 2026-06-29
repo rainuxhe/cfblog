@@ -3,6 +3,7 @@ date = '2025-12-25T00:14:28+08:00'
 draft = false
 title = "Mcp-01: 简介与概念"
 description = "简单介绍MCP的一些基本概念"
+summary = '介绍MCP协议的核心概念与设计理念'
 categories = ["program", "ai"]
 tags = ["mcp", "python", "ai"]
 +++

@@ -3,6 +3,7 @@ date = '2026-02-14T12:40:31+08:00'
 draft = false
 title = 'Flask - Common Application Deployment Solutions'
 description = "This article introduces several common deployment solutions for Flask applications in production environments"
+summary = 'Common Flask production deployment solutions'
 isCJKLanguage = false
 categories = ["program"]
 tags = ["python", "flask", "docker"]

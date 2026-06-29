@@ -3,6 +3,7 @@ date = '2026-02-08T16:20:18+08:00'
 draft = false
 title = 'Using UPSERT in SQLAlchemy'
 description = "This article explains how to use UPSERT operations in SQLAlchemy with PostgreSQL and SQLite"
+summary = 'Using UPSERT in SQLAlchemy'
 isCJKLanguage = false
 categories = ["program"]
 tags = ["python", "sqlalchemy", "postgres", "sqlite", "sql"]

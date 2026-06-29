@@ -3,6 +3,7 @@ date = '2026-02-08T23:56:57+08:00'
 draft = false
 title = 'Executing Asynchronous Scheduled Tasks with Database-Based Distributed Locking in FastAPI'
 description = "This article provides a comprehensive guide on implementing an asynchronous task scheduler in FastAPI, using database-based distributed locks to prevent duplicate task execution in multi-process environments."
+summary = 'Distributed DB lock for async scheduled tasks in FastAPI'
 isCJKLanguage = false
 categories = ["program"]
 tags = ["python", "sqlalchemy", "fastapi", "sqlite"]

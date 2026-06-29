@@ -1,103 +1,87 @@
 +++
 date = '2026-04-07T00:24:04+08:00'
 draft = false
-title = '基于Postgres的Listen/Notify构建轻量级订阅系统'
-description = '基于Postgres的Listen/Notify构建轻量级订阅系统'
-summary = '基于Postgres Listen/Notify构建轻量级消息订阅系统'
+title = 'Building a Lightweight Subscription System with Postgres Listen/Notify'
+description = 'Building a Lightweight Subscription System with Postgres Listen/Notify'
+summary = 'Build a lightweight message subscription system with Postgres Listen/Notify'
+isCJKLanguage = false
 categories = ["program"]
-tags = ["postgres", "python"]
+tags = ["postgres", "python", "AI-Translated"]
 keywords = ["postgres", "python"]
 slug = 'light-sub-sys-with-pg-ln'
 +++
 
-## 概述
+## Overview
 
-原先设计一个内部系统的消息模块和缓存模块时，只有一个Postgres依赖。想着没多大用户量，没必要额外安装Redis，徒增运维工夫。缓存好解决，配个UNLOGGED表即可。吭吭哧哧琢磨怎么用数据表实现消息的时候，发现PostgreSQL 提供了内置命令 `LISTEN` 和 `NOTIFY`，用于在数据库服务器和连接的客户端之间实现异步通信。这个 PostgreSQL 特有的扩展功能使得数据库可以作为一个轻量级的消息队列（MQ）系统使用，允许应用程序从数据库中生成事件，并由其他客户端实时响应。于是一拍即合，上手体验一下。
+When designing the message module and caching module for an internal system, we only had a Postgres dependency. Considering the small user base, there was no need to add Redis and increase operational burden. Caching was easy — just use an UNLOGGED table. While pondering how to implement messaging with database tables, I discovered that PostgreSQL provides built-in commands `LISTEN` and `NOTIFY` for asynchronous communication between the database server and connected clients. This PostgreSQL-specific extension allows the database to function as a lightweight message queue (MQ) system, enabling applications to generate events from the database and have other clients respond in real time. It was a perfect fit, so I decided to give it a try.
 
-### 核心特性
+### Core Features
 
-- **轻量级实现**：无需额外的消息中间件，直接利用 PostgreSQL 内置功能
-- **异步通信**：支持发布-订阅模式，实现解耦的组件通信
-- **内存高效**：通道（Channel）是纯内存对象，不占用磁盘空间
-- **零配置**：无需预先创建或管理通道，随用随建
+- **Lightweight Implementation**: No additional message middleware required, directly leveraging PostgreSQL's built-in functionality
+- **Asynchronous Communication**: Supports publish-subscribe pattern for decoupled component communication
+- **Memory Efficient**: Channels are pure in-memory objects, consuming no disk space
 
-### 适用场景
+## Environment and Version
 
-1. **实时仪表盘**：数据变更时实时推送更新
-2. **缓存失效**：数据更新时通知缓存层刷新
-3. **数据审计**：跟踪重要数据变更事件
-4. **任务调度**：构建简单的分布式任务队列
-5. **事件驱动架构**：实现微服务间的事件通信
+- **Python**: 3.12+
+- **PostgreSQL**: 14+
+- **psycopg**: 3.3+
 
-### 通道（Channel）机制
+## Core Concepts of LISTEN/NOTIFY
 
-**重要特性**：
-- Channel 是纯内存对象，随 `LISTEN` 命令隐式创建
-- 当所有监听会话断开或执行 `UNLISTEN` 时自动回收
-- 无需手动创建或删除通道，也不支持此操作
-
-### 消息传递模型
-
-PostgreSQL 的 `NOTIFY` 采用典型的 **"无监听即丢弃"** 机制：
-- 没有监听者时，消息不会入队
-- 不占用磁盘空间
-- 不消耗持久化内存
-- 消息仅在存在活跃监听者时传递
-
-## 基础使用
-
-### psql 命令行示例
+### Basic Usage
 
 ```sql
--- 监听指定通道
-LISTEN task_channel;
+-- Subscriber: listen on a channel
+LISTEN my_channel;
 
--- 向通道发送消息
-NOTIFY task_channel, '123456';
+-- Publisher: send a notification
+NOTIFY my_channel, 'Hello, World!';
+```
 
--- 取消监听所有通道
-UNLISTEN *;
+### Viewing Channels and Monitoring
 
--- 查看当前监听的通道
+```sql
+-- View currently listening channels
 SELECT pg_listening_channels();
 
--- 查看系统通知状态
+-- View system notification status
 SELECT * FROM pg_stat_activity WHERE backend_type = 'client backend';
 ```
 
-### 动态消息生成
+### Dynamic Message Generation
 
-标准的 `NOTIFY` 命令要求消息内容必须明确指定，不支持动态字符串拼接。但可以使用 `pg_notify()` 函数来生成动态通知：
+The standard `NOTIFY` command requires messages to be explicitly specified and doesn't support dynamic string concatenation. However, you can use the `pg_notify()` function to generate dynamic notifications:
 
 ```sql
--- 使用 pg_notify 函数支持动态消息
+-- Use pg_notify function for dynamic messages
 SELECT pg_notify('my_channel', 'Hello, ' || 'World!');
 
--- 带参数的动态消息
+-- Dynamic message with parameters
 SELECT pg_notify('audit_channel', 'User ' || current_user || ' logged in at ' || now()::text);
 ```
 
-## Python 实现示例
+## Python Implementation
 
-### 项目结构
+### Project Structure
 
 ```
-├── main.py              # 核心实现：TaskWorker 和 TaskProducer
+├── main.py              # Core: TaskWorker and TaskProducer
 ├── conf/
-│   └── config.toml     # 配置文件
+│   └── config.toml     # Config file
 └── pkg/
-    └── config/         # 配置管理模块
+    └── config/         # Config management module
 ```
 
-### 安装依赖
+### Installing Dependencies
 
 ```shell
 uv add "psycopg[binary,pool]>=3.3.3"
 ```
 
-### 配置管理
+### Config Management
 
-首先，通过配置文件管理数据库连接和通道设置：
+Manage database connection and channel settings via a config file:
 
 ```toml
 # conf/config.toml
@@ -109,10 +93,10 @@ password = "password"
 dbname = "database_name"
 pool_min_size = 2
 pool_max_size = 10
-channel = "task_channel"  # 默认通道名称
+channel = "task_channel"
 ```
 
-配置模块的代码示例：`pkg/config/config.py`
+Config module code: `pkg/config/config.py`
 
 ```python
 import tomllib
@@ -133,9 +117,9 @@ class BaseConfig:
             with open(self._cfg_file, "rb") as f:
                 self._data = tomllib.load(f)
         except FileNotFoundError:
-            raise RuntimeError(f"配置文件不存在: {self._cfg_file}")
+            raise RuntimeError(f"Config file not found: {self._cfg_file}")
         except Exception as e:
-            raise RuntimeError(f"加载配置文件失败: {e}")
+            raise RuntimeError(f"Failed to load config file: {e}") from e
 
 
 class PostgresConfigMixin(BaseConfig):
@@ -155,29 +139,18 @@ class PostgresConfigMixin(BaseConfig):
         return self._data.get("database", {}).get("postgres", {}).get("dbname", "")
 
     def postgres_pool_min_size(self) -> int:
-        return (
-            self._data.get("database", {}).get("postgres", {}).get("pool_min_size", 2)
-        )
+        return self._data.get("database", {}).get("postgres", {}).get("pool_min_size", 2)
 
     def postgres_pool_max_size(self) -> int:
-        return (
-            self._data.get("database", {}).get("postgres", {}).get("pool_max_size", 10)
-        )
+        return self._data.get("database", {}).get("postgres", {}).get("pool_max_size", 10)
 
     def postgres_channel(self) -> str:
-        return (
-            self._data.get("database", {})
-            .get("postgres", {})
-            .get("channel", "default_channel")
-        )
+        return self._data.get("database", {}).get("postgres", {}).get("channel", "default_channel")
 
     def get_postgres_dsn(self, hide_password: bool = False) -> str:
-        """获取PostgreSQL连接DSN"""
         password = self.postgres_password()
         if hide_password and password:
             password = "***"
-
-        # psycopg3 使用标准的 PostgreSQL 连接字符串格式
         return (
             f"postgresql://{self.postgres_user()}:{password}@"
             f"{self.postgres_host()}:{self.postgres_port()}/{self.postgres_dbname()}"
@@ -185,7 +158,7 @@ class PostgresConfigMixin(BaseConfig):
 
 
 class LLMConfigMixin(BaseConfig):
-    """LLM配置Mixin"""
+    """LLM config mixin"""
 
     def llm_model(self) -> str:
         return self._data.get("llm", {}).get("model", "")
@@ -202,20 +175,19 @@ class Config(PostgresConfigMixin, LLMConfigMixin):
         super().__init__(cfg_file)
 
     def reload(self) -> None:
-        """重新加载配置"""
-        self._data = {}  # 清空数据
+        self._data = {}
         self._load_config()
 
 ```
 
-### 核心组件实现
+### Core Component Implementation
 
-#### 1. 任务消费者（TaskWorker）
+#### 1. Task Consumer (TaskWorker)
 
-`TaskWorker` 负责监听指定通道并处理接收到的任务：
+`TaskWorker` listens on a specified channel and processes received tasks:
 
 ```python
-# main.py - TaskWorker 类核心部分
+# main.py - TaskWorker class core
 import asyncio
 import json
 import signal
@@ -243,11 +215,10 @@ class TaskWorker:
             self._dsn,
             min_size=cfg.postgres_pool_min_size(),
             max_size=cfg.postgres_pool_max_size(),
-            open=False,  # 延迟打开, 避免阻塞
+            open=False,
         )
         await self.pool.open()
 
-        # 独立监听连接，防止 LISTEN 状态随连接回收丢失
         self.listener_conn = await AsyncConnection.connect(self._dsn, autocommit=True)
         await self.listener_conn.execute(
             sql.SQL("LISTEN {}").format(sql.Identifier(self.channel))
@@ -266,22 +237,19 @@ class TaskWorker:
             await self.stop()
 
     async def _dispatch_task(self, notify: Notify) -> None:
-        """接收通知并分发任务"""
         task_info = notify.payload.strip()
         try:
-            task_data = json.loads(task_info)  # 假设 payload 是 JSON 格式的字符串
+            task_data = json.loads(task_info)
             print(f"Received task notification: {task_data}")
         except json.JSONDecodeError:
-            task_data = {"task_id": task_info}  # 如果不是 JSON 格式，使用原始字符串
+            task_data = {"task_id": task_info}
             print(f"Received non-JSON task notification: {task_data}")
         except Exception as e:
             print(f"Invalid task ID received: {task_info}")
             return
 
         if not isinstance(task_data, dict) or "task_id" not in task_data:
-            print(
-                f"Missing task_id in notification: {task_data}, or task_data is not a dict"
-            )
+            print(f"Missing task_id in notification: {task_data}")
             return
 
         task = asyncio.create_task(self._process_task(task_data))
@@ -289,30 +257,24 @@ class TaskWorker:
         task.add_done_callback(self.active_tasks.discard)
 
     async def _process_task(self, task_data: dict) -> None:
-        """执行业务逻辑"""
         if not self.pool:
             raise RuntimeError("Connection pool is not initialized")
         async with self.sem:
             async with self.pool.connection() as conn:
                 try:
                     await self._execute_business(task_data)
-
                     print(f"<= Task {task_data['task_id']} completed successfully")
                 except Exception as e:
                     print(f"Error processing task {task_data['task_id']}: {e}")
-                    # 这里可以添加重试逻辑或错误记录
                     await self._log_failure(conn, task_data["task_id"], str(e))
 
     async def _execute_business(self, task_data: dict) -> None:
-        """执行业务逻辑"""
         print(f"<= Processing task {task_data}...")
-        await asyncio.sleep(5)  # 模拟耗时操作
+        await asyncio.sleep(5)
         print(f"<= Task {task_data} done.")
 
     async def _log_failure(self, conn: AsyncConnection, task_id: int, error_msg: str):
-        """记录失败日志"""
         try:
-            # 记录失败日志到独立表，便于后续重试或告警
             print(f"Logging failure for task {task_id}: {error_msg}")
         except Exception as e:
             print(f"Failed to log error for task {task_id}: {e}")
@@ -331,12 +293,12 @@ class TaskWorker:
         print("TaskWorker stopped gracefully.")
 ```
 
-#### 2. 任务发布者（TaskPublisher）
+#### 2. Task Publisher (TaskPublisher)
 
-`TaskPublisher` 负责向通道发布任务消息：
+`TaskPublisher` publishes task messages to a channel:
 
 ```python
-# main.py - TaskPublisher 类
+# main.py - TaskPublisher class
 class TaskPublisher:
     def __init__(self, dsn: str):
         self._dsn = dsn
@@ -348,7 +310,7 @@ class TaskPublisher:
                 self._dsn,
                 min_size=cfg.postgres_pool_min_size(),
                 max_size=cfg.postgres_pool_max_size(),
-                open=False,  # 延迟打开, 避免阻塞
+                open=False,
             )
             await self._pool.open()
         print("TaskPublisher started.")
@@ -359,9 +321,7 @@ class TaskPublisher:
 
         async with self._pool.connection() as conn:
             try:
-                payload_str = json.dumps(
-                    payload, default=str
-                )  # 将 dict 转换为 JSON 字符串
+                payload_str = json.dumps(payload, default=str)
                 await conn.execute(
                     sql.SQL("NOTIFY {}, {}").format(
                         sql.Identifier(channel), sql.Literal(payload_str)
@@ -378,7 +338,6 @@ class TaskPublisher:
             raise RuntimeError("Connection pool is not initialized")
 
         count = 0
-
         async with self._pool.connection() as conn:
             for payload in payloads:
                 try:
@@ -407,9 +366,7 @@ class TaskPublisher:
         await self.stop()
 ```
 
-### 调用演示
-
-以下是`main.py`中的演示部分：
+### Demo
 
 ```python
 # main.py
@@ -424,34 +381,19 @@ async def run_publisher():
         for i in range(1, 11):
             payload = {"task_id": i, "data": f"Task data {i}"}
             await publisher.publish(cfg.postgres_channel(), payload)
-            await asyncio.sleep(0.5)  # 模拟发布间隔
+            await asyncio.sleep(0.5)
 
 
 async def main():
-    # worker = TaskWorker(cfg.get_postgres_dsn(), cfg.postgres_channel())
-    # loop = asyncio.get_running_loop()
-    # stop_evt = asyncio.Event()
-
-    # for sig in (signal.SIGINT, signal.SIGTERM):
-    #     loop.add_signal_handler(sig, stop_evt.set)
-
-    # listen_task = asyncio.create_task(worker.start())
-
-    # await stop_evt.wait()
-    # print("Shutdown signal received, stopping worker...")
-    # listen_task.cancel()
-    # await listen_task
-
     worker_task = await run_worker()
-    await asyncio.sleep(2)  # 确保 worker 已经启动并监听
+    await asyncio.sleep(2)
 
-    await run_publisher()  # 发布任务
+    await run_publisher()
     print("All tasks published successfully.")
 
-    await asyncio.sleep(30)  # 等待 worker 处理完任务
+    await asyncio.sleep(30)
 
-    worker_task.cancel()  # 停止 worker
-
+    worker_task.cancel()
     try:
         await worker_task
     except asyncio.CancelledError:
@@ -462,62 +404,59 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-## 使用场景扩展
+## Use Case Extensions
 
-### 场景一：实时数据同步
+### Scenario 1: Real-time Data Synchronization
 
 ```python
 async def sync_data_change(self, table_name: str, record_id: str, operation: str):
-    """数据变更时发送同步通知"""
     message = f"{table_name}:{record_id}:{operation}"
     await self.publish("data_sync_channel", message)
 ```
 
-### 场景二：分布式锁通知
+### Scenario 2: Distributed Lock Notification
 
 ```python
 async def notify_lock_release(self, lock_name: str):
-    """锁释放时通知等待者"""
     await self.publish("distributed_lock_channel", f"RELEASE:{lock_name}")
 ```
 
-### 场景三：缓存失效广播
+### Scenario 3: Cache Invalidation Broadcast
 
 ```python
 async def invalidate_cache(self, cache_key: str):
-    """缓存失效时广播通知"""
     await self.publish("cache_invalidation_channel", cache_key)
 ```
 
-## 注意事项
+## Important Notes
 
-### 技术限制
+### Technical Limitations
 
-1. **消息大小**：NOTIFY 消息最大为 8000 字节
-2. **无持久化**：消息不持久化，重启后丢失
-3. **无确认机制**：发送方无法知道消息是否被接收
-4. **无顺序保证**：消息可能不按发送顺序到达
+1. **Message Size**: NOTIFY messages are limited to 8000 bytes
+2. **No Persistence**: Messages are not persisted and are lost after restart
+3. **No Acknowledgement**: Senders cannot know if a message was received
+4. **No Order Guarantee**: Messages may arrive out of order
 
-### 生产环境建议
+### Production Recommendations
 
-1. **监控告警**：实现通道监听状态监控
-2. **错误处理**：添加完善的错误处理和日志记录
-3. **备份机制**：重要消息应有备份存储
-4. **性能测试**：在高负载下测试系统表现
+1. **Monitoring**: Implement channel listening status monitoring
+2. **Error Handling**: Add comprehensive error handling and logging
+3. **Backup**: Important messages should have backup storage
+4. **Performance Testing**: Test under high load
 
-## 补充
+## Supplement
 
-### asyncpg版
+### asyncpg Version
 
-`asyncpg`是python连接postgres的纯异步驱动，性能更好
+`asyncpg` is a pure asynchronous Python driver for Postgres with better performance.
 
-安装
+Installation:
 
 ```shell
 uv add asyncpg
 ```
 
-代码示例：
+Code example:
 
 ```python
 import asyncio
@@ -528,7 +467,7 @@ import asyncpg
 
 from pkg.config import cfg
 
-MAX_CONCURRENT_TASKS = 5  # 最大并发任务数
+MAX_CONCURRENT_TASKS = 5
 
 
 class TaskWorker:
@@ -541,7 +480,6 @@ class TaskWorker:
         self._active_tasks: Set[asyncio.Task] = set()
 
     async def start(self):
-        """启动监听器"""
         if not self._pool:
             self._pool = await asyncpg.create_pool(
                 dsn=self._dsn,
@@ -549,14 +487,12 @@ class TaskWorker:
                 max_size=cfg.postgres_pool_max_size(),
             )
 
-        # 创建专用连接用于监听
         if not self._listener_conn:
             self._listener_conn = await asyncpg.connect(dsn=self._dsn)
             await self._listener_conn.add_listener(self._channel, self._on_notify)
             print(f"Listening on channel: {self._channel}")
 
         try:
-            # 保持监听状态
             await asyncio.Future()
         except asyncio.CancelledError:
             pass
@@ -566,55 +502,41 @@ class TaskWorker:
     async def _on_notify(
         self, conn: asyncpg.Connection, pid: int, channel: str, payload: str
     ):
-        """收到 NOTIFY 时的回调函数"""
         if not payload:
             return
 
         task_id = payload.strip()
         print(f"Received notification: {task_id} on channel: {channel}")
 
-        # 提交到事件循环，带并发限制
         task = asyncio.create_task(self._handle_task(task_id))
         self._active_tasks.add(task)
         task.add_done_callback(self._active_tasks.discard)
 
     async def _handle_task(self, task_id: str):
-        """任务处理核心逻辑"""
         if not self._pool:
-            raise RuntimeError("数据库连接池未初始化")
-        async with self._sem:  # 并发控制
+            raise RuntimeError("Database pool not initialized")
+        async with self._sem:
             async with self._pool.acquire() as conn:
                 try:
-                    # 1. 执行业务逻辑
                     await self._execute_business_logic(task_id)
-
-                    # 2. 更新任务状态（示例）
                     print(f"Task {task_id} completed successfully.")
-
                 except Exception as e:
                     print(f"Task {task_id} failed: {e}")
                     await self._log_failure(task_id, str(e))
 
     async def _execute_business_logic(self, task_id: str):
-        """模拟业务逻辑处理"""
         print(f"Processing task {task_id}...")
-        await asyncio.sleep(5)  # 模拟耗时操作
+        await asyncio.sleep(5)
         print(f"Task {task_id} completed.")
 
     async def _log_failure(self, task_id: str, error: str):
-        """记录失败日志"""
         print(f"Task {task_id} failure logged: {error}")
-        # 实际项目中可记录到数据库
 
     async def stop(self):
-        """优雅关闭"""
         print("Shutting down gracefully...")
-
-        # 等待正在运行的任务完成
         if self._active_tasks:
             await asyncio.gather(*self._active_tasks, return_exceptions=True)
 
-        # 清理资源
         if self._listener_conn:
             await self._listener_conn.remove_listener(self._channel, self._on_notify)
             await self._listener_conn.close()
@@ -630,23 +552,18 @@ async def main():
     loop = asyncio.get_running_loop()
     stop_evt = asyncio.Event()
 
-    # 注册信号处理器，优雅关闭
     for sig in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(sig, stop_evt.set)
 
-    # 启动监听器
     listen_task = asyncio.create_task(worker.start())
 
-    # 等待停止事件
     await stop_evt.wait()
     print("Shutdown signal received, stopping worker...")
 
-    # 取消监听任务并等待完成
     listen_task.cancel()
     await listen_task
 
 
 if __name__ == "__main__":
     asyncio.run(main())
-
 ```

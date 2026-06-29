@@ -2,6 +2,7 @@
 date = '2025-12-11T00:40:44+08:00'
 draft = false
 title = 'FastAPI - Design of tracking_id'
+summary = 'Add tracking_id to FastAPI with contextvars for request log tracing'
 categories = ["program"]
 tags = ["fastapi", "python"]
 +++
