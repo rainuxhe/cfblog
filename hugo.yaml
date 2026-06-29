@@ -1,7 +1,7 @@
 baseURL: https://heruos.top/
 languageCode: "zh"
 DefaultContentLanguage: "zh"
-title: Heruos
+title: Rainux
 theme: ["PaperMod"]
 
 enableInlineShortcodes: true
@@ -19,7 +19,7 @@ minify:
 
 pagination:
   disableAliases: false
-  pagerSize: 7
+  pagerSize: 10
 
 languages:
   zh:
@@ -55,7 +55,7 @@ languages:
       series: series
     menu:
       main:
-        - name: Archive
+        - name: Archives
           url: archives
           weight: 5
         - name: Categories
@@ -71,9 +71,13 @@ languages:
           url: about
           weight: 15
 
+markup:
+  highlight:
+    lineNos: true
+
 params:
   env: production # to enable google analytics, opengraph, twitter-cards and schema.
-  description: "Make your lives extraordinary."
+  description: "Getting Over it with Rainux."
   author: Rainux He
 
   defaultTheme: auto
@@ -91,6 +95,20 @@ params:
   ShowToc: true
 
   homeInfoParams:
-    Title: "Heruos || Rainux || 花酒锄作田"
-    Content: >
-     为何而活? 要到哪去? 该做什么? 在做什么?
+    Title: "Rainux || Heruos || 花酒锄作田"
+    Content: |
+      忘了是怎么开始，也许就是对于写点什么比较感兴趣
+
+      记录生活，记录工作；记录风景，记录走过的路
+
+      爱过的、痛过的、念想过的、遗憾过的
+
+      还不算长的岁月里也有很多值得回忆的事物
+
+      坦然接受过去，一点一滴都成就现在的自己
+
+      平淡展望未来，一步一脚印走向希冀的远方
+
+      我来过，我记录
+
+      我记录，我将来

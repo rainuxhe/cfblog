@@ -4,7 +4,7 @@ draft = false
 title = 'Debian 13基于kubeadm和cilium部署单节点kubernetes'
 description = "本文详细介绍如何在本地虚拟机部署单节点的kubernetes集群，并使用cilium作为网络插件"
 isCJKLanguage = true
-categories = ["devops"]
+categories = ["operation"]
 tags = ["kubernetes", "harbor", "containerd", "cilium"]
 keywords = [
     "kubernetes",

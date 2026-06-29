@@ -4,7 +4,7 @@ draft = false
 title = 'Deploying a Single-Node Kubernetes Cluster on Debian 13 with kubeadm and Cilium'
 description = "This article provides a comprehensive guide on deploying a single-node Kubernetes cluster in a local virtual machine environment using Cilium as the network plugin."
 isCJKLanguage = false
-categories = ["devops"]
+categories = ["operation"]
 tags = ["kubernetes", "harbor", "containerd", "cilium"]
 keywords = [
     "kubernetes",
