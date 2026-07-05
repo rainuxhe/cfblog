@@ -5,7 +5,7 @@ title = 'Exploring the Official MCP Go SDK'
 description = 'Hands-on experience with the official MCP Go SDK: Building an MCP Server and an MCP Client that enables LLMs to autonomously select tools'
 summary = 'Build MCP Server and Client with the Go SDK'
 categories = ["program", "ai"]
-tags = ["mcp", "golang", "ai"]
+tags = ["mcp", "go", "ai"]
 keywords = [
     "mcp",
     "golang",

@@ -6,7 +6,7 @@ description = '关于算命的一些想法'
 summary = '以前学过看手相和塔罗牌，上学那会儿经常会给同学们算着玩。'
 isCJKLanguage = true
 categories = ['life']
-tags = ['thoughts']
+tags = ['thought']
 slug = 'divination'
 +++
 

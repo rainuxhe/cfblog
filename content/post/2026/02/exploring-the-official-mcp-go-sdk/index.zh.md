@@ -5,7 +5,7 @@ title = 'MCP官方Go SDK尝鲜'
 description = 'MCP 官方 Go SDK尝鲜, 构建MCP Server和支持LLM自主抉择tool的MCP Client'
 summary = '使用Go SDK构建MCP Server和Client'
 categories = ["program", "ai"]
-tags = ["mcp", "golang", "ai"]
+tags = ["mcp", "go", "ai"]
 keywords = [
     "mcp",
     "golang",
