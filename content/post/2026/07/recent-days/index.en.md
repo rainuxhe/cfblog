@@ -4,17 +4,13 @@ lastmod = '2026-07-15T00:10:26+08:00'
 draft = false
 isCJKLanguage = false
 title = 'Life Lately — A Photo Journal'
-description = 'A collection of everyday moments from late June to mid-July 2026: lotus flowers at Shufengwan Park, an evening walk with cloudy skies, a typhoon rainy day, a team movie outing, and a stray kitten at the office'
-summary = 'A collection of everyday moments from late June to mid-July 2026: lotus flowers at Shufengwan Park, an evening walk with cloudy skies, a typhoon rainy day, a team movie outing, and a stray kitten at the office'
+description = 'A photo journal of everyday life from late June to mid-July: lotus at Shufengwan Park, evening walks, a typhoon rainy day, a team movie outing, and a stray kitten'
+summary = 'A photo journal of everyday life from late June to mid-July: lotus at Shufengwan Park, evening walks, a typhoon rainy day, a team movie outing, and a stray kitten'
 categories = ["life"]
 tags = ["life", "photo", "AI-Translated"]
 keywords = ["life", "photo"]
 slug = 'recent-days-20260715'
 +++
-
-*PS: The images have been compressed for faster page loading, so there is some loss of quality.*
-
----
 
 On the weekend of June 28, I had a sudden urge to go see the lotus flowers. So I braved the blazing summer sun and biked 10 kilometers to Shufengwan Park. On the way, I passed a vacant lot full of blooming zinnias.
 
@@ -59,7 +55,7 @@ July 11, Saturday. After dinner I went out for a stroll. There's a road near hom
 
 ![](./IMG_20260712_020714_compress59.webp)
 
-⬇️ A plane passed overhead. This was the best I could get with the lens zoomed all the way in. At least my hands didn't shake enough to blur it.
+⬇️ A plane swept overhead. Even at maximum zoom, this was the best I could capture — and remarkably, it didn't come out blurry at all, handheld at that focal length.
 
 ![](./IMG_20260712_020232_compress45.webp)
 
@@ -68,6 +64,10 @@ July 11, Saturday. After dinner I went out for a stroll. There's a road near hom
 ⬇️ July 12 — Typhoon Bavi passed through, and it rained all day. This is the locust tree downstairs (well, I *think* it's a locust tree — the flowers look like acacia blossoms). I gave the photo a simple edit and added a white frame. It reminded me of a magazine cover I'd seen before.
 
 ![](./1000030039_compress38.webp)
+
+⬇️ For the first time, I earned the Rare Diamond achievement in Duolingo's weekly league.
+
+![](./IMG_20260801_221641_compress97.webp)
 
 ---
 
@@ -84,3 +84,13 @@ July 11, Saturday. After dinner I went out for a stroll. There's a road near hom
 ⬇️ On the way home from work — roses blooming in the median strip.
 
 ![](./IMG_20260715_001557_compress39.webp)
+
+---
+
+⬇️ July 15 — on my evening walk, I passed the high-voltage towers once more. It wasn't that late yet, and pink clouds sprawled freely across the horizon.
+
+![](./IMG_20260715_222630_compress21.webp)
+
+---
+
+*PS: All images have been compressed to optimize page loading.*
