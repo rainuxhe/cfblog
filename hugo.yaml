@@ -76,6 +76,28 @@ markup:
     lineNos: true
     tabWidth: 4
 
+outputs:
+  home:
+  - html
+  - rss
+  page:
+  - html
+  rss:
+  - rss
+  section:
+  - html
+  - rss
+  taxonomy:
+  - html
+  - rss
+  term:
+  - html
+  - rss
+
+services:
+  rss:
+    limit: 10
+
 params:
   env: production # to enable google analytics, opengraph, twitter-cards and schema.
   description: "Getting Over it with Rainux."
@@ -94,6 +116,7 @@ params:
   ShowAllPagesInArchive: true
   ShowPageNums: true
   ShowToc: true
+  hasMermaid: false
 
   homeInfoParams:
     Title: "Rainux || Heruos || 花酒锄作田"
