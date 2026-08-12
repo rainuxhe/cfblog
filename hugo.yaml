@@ -43,6 +43,9 @@ languages:
         - name: 标签
           url: tags/
           weight: 10
+        - name: 其它
+          url: pages/
+          weight: 12
         - name: 关于
           url: about
           weight: 15
