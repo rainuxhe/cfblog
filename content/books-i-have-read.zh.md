@@ -1,16 +1,16 @@
-+++
-date = '2026-08-12T22:17:08+08:00'
-lastmod = '2026-08-12T22:17:08+08:00'
-draft = true
-isCJKLanguage = true
-title = '读过的书'
-description = '读过的书'
-summary = '读过的书'
-categories = ["life"]
-tags = ["read"]
-keywords = ["read", "book"]
-slug = 'books-i-have-read'
-+++
+---
+date: '2026-08-12T22:17:08+08:00'
+lastmod: '2026-08-12T22:17:08+08:00'
+draft: false
+isCJKLanguage: true
+title: '读过的书'
+description: '读过的书'
+summary: '读过的书'
+categories: ["life"]
+tags: ["read"]
+keywords: ["read", "book"]
+slug: 'books-i-have-read'
+---
 
 ## 前言
 
