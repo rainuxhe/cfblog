@@ -7,7 +7,7 @@ title = 'A Simple Implementation of the Registry Factory Pattern'
 description = 'Build a simple job scheduler in Go using the registry factory pattern'
 summary = 'Build a simple job scheduler in Go using the registry factory pattern'
 categories = ["program"]
-tags = ["golang", "AI-Translated"]
+tags = ["go", "AI-Translated"]
 keywords = ["golang"]
 slug = 'register-factory-pattern-in-golang'
 +++

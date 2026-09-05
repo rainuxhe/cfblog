@@ -7,7 +7,7 @@ title = '注册表工厂模式的简单实现'
 description = '在 Golang 中，用注册表工厂模式实现一个简单的 job 调度器'
 summary = '在 Golang 中，用注册表工厂模式实现一个简单的 job 调度器'
 categories = ["program"]
-tags = ["golang"]
+tags = ["go"]
 keywords = ["golang"]
 slug = 'register-factory-pattern-in-golang'
 +++
